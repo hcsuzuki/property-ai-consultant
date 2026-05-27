@@ -1,0 +1,238 @@
+import os
+import json
+import re
+import anthropic
+
+
+SYSTEM_PROMPT = """あなたは日本人投資家向けのアメリカ不動産投資の専門AIコンサルタントです。
+豊富な市場知識と財務分析の専門性を持ち、客観的で実用的な投資アドバイスを日本語で提供します。
+分析は必ずJSON形式で返してください。"""
+
+
+class PropertyAnalyzer:
+    """Claude を使った不動産投資分析エンジン"""
+
+    def __init__(self):
+        self.client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
+
+    def analyze_property(
+        self,
+        property_data: dict,
+        location_data: dict,
+        financials: dict,
+    ) -> dict:
+        """全データを統合して投資分析を実行"""
+        prompt = self._build_prompt(property_data, location_data, financials)
+        try:
+            message = self.client.messages.create(
+                model="claude-haiku-4-5-20251001",  # 最安モデル。Sonnetに変えると高品質
+                max_tokens=4096,
+                system=SYSTEM_PROMPT,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            raw = message.content[0].text
+            return self._parse_json(raw)
+        except Exception as e:
+            return {"error": str(e), "investment_score": 0}
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Prompt construction
+    # ──────────────────────────────────────────────────────────────────────────
+
+    def _build_prompt(self, prop: dict, loc: dict, fin: dict) -> str:
+        prop_section = self._fmt_property(prop)
+        loc_section = self._fmt_location(loc)
+        fin_section = self._fmt_financials(fin)
+
+        return f"""以下のアメリカ不動産物件を日本人投資家の視点から詳細に分析してください。
+
+━━━ 物件情報 ━━━
+{prop_section}
+
+━━━ 財務指標 ━━━
+{fin_section}
+
+━━━ 周辺環境 ━━━
+{loc_section}
+
+━━━ 出力形式 ━━━
+以下のJSONのみを返してください（余分なテキスト不要）:
+
+{{
+  "investment_score": <0〜100の整数>,
+  "score_breakdown": {{
+    "location_score": <0〜30>,
+    "location_max": 30,
+    "financial_score": <0〜40>,
+    "financial_max": 40,
+    "property_score": <0〜20>,
+    "property_max": 20,
+    "market_score": <0〜10>,
+    "market_max": 10
+  }},
+  "recommendation": "<長期保有推奨 or 早期売却推奨 or 条件付き推奨 など>",
+  "hold_years": "<推奨保有期間。例: 5〜10年>",
+  "strengths": ["<強み1>", "<強み2>", "<強み3>"],
+  "risks": ["<リスク1>", "<リスク2>", "<リスク3>"],
+  "financial_analysis": "<財務分析（キャップレート・CF・CoC・GRM・価格妥当性について300字以上）>",
+  "location_analysis": "<立地分析（学校区・生活利便性・主要道路・交通アクセスについて200字以上）>",
+  "market_outlook": "<市場見通し（エリアの成長性・賃貸需要・価格トレンドについて200字以上）>",
+  "overall_comment": "<総合評価（投資家への具体的アドバイスを含む300字以上）>",
+  "action_plan": "<推奨アクション（価格交渉・ローン戦略・管理方針など具体的に200字以上）>",
+  "tax_considerations": "<日本人投資家向け税務上の注意点（FIRPTA・確定申告・日米租税条約など200字以上）>"
+}}
+
+【採点基準】
+- 立地スコア（30点）: 学校区の質(7点)、生活利便性(7点)、交通アクセス(6点)、静閑性・主要道路(5点)、安全性・犯罪率(5点)
+- 財務スコア（40点）: キャップレート(10点)、CoC・CF(10点)、価格妥当性・GRM(10点)、賃料/価格比(10点)
+- 物件スコア（20点）: 築年数・状態(8点)、広さ・間取り(7点)、物件タイプ(5点)
+- 市場スコア（10点）: エリア成長性(5点)、賃貸需要・流動性(5点)
+"""
+
+    def _fmt_property(self, prop: dict) -> str:
+        if prop.get("error"):
+            return f"取得失敗: {prop['error']}"
+
+        lines = []
+        fields = [
+            ("住所", prop.get("streetAddress", prop.get("address", "不明"))),
+            ("市区", f"{prop.get('city', '')} {prop.get('state', '')} {prop.get('zipcode', '')}"),
+            ("物件タイプ", prop.get("homeType", "不明")),
+            ("広さ", f"{prop.get('livingArea', 'N/A')} sq ft" if prop.get("livingArea") else "N/A"),
+            ("土地面積", f"{prop.get('lotAreaValue', 'N/A')} {prop.get('lotAreaUnit', 'sqft')}" if prop.get("lotAreaValue") else "N/A"),
+            ("寝室", prop.get("bedrooms", "N/A")),
+            ("浴室", prop.get("bathrooms", "N/A")),
+            ("築年", prop.get("yearBuilt", "N/A")),
+            ("Zestimate（推定価格）", f"${prop.get('zestimate', 0):,.0f}" if prop.get("zestimate") else "N/A"),
+            ("Rent Zestimate（推定賃料）", f"${prop.get('rentZestimate', 0):,.0f}/月" if prop.get("rentZestimate") else "N/A"),
+            ("最終売却価格", f"${prop.get('lastSoldPrice', 0):,.0f}" if prop.get("lastSoldPrice") else "N/A"),
+            ("最終売却日", prop.get("lastSoldDate", "N/A")),
+            ("物件説明", (prop.get("description", "") or "")[:300]),
+        ]
+        for label, value in fields:
+            if value and value != "N/A":
+                lines.append(f"- {label}: {value}")
+
+        price_history = prop.get("priceHistory", [])
+        if price_history:
+            lines.append("\n【取引・価格履歴】")
+            for event in price_history[:6]:
+                date = event.get("date", "")
+                etype = event.get("event", "")
+                price = event.get("price", 0)
+                if price:
+                    lines.append(f"  {date} | {etype} | ${price:,.0f}")
+
+        schools = prop.get("schools", [])
+        if schools:
+            lines.append("\n【Zillow学区情報】")
+            for s in schools[:3]:
+                name = s.get("name", "")
+                rating = s.get("rating", "")
+                dist = s.get("distance", "")
+                lines.append(f"  {name} (評価: {rating}/10, {dist}マイル)")
+
+        violations = prop.get("violations", prop.get("openCodeViolations", []))
+        if violations:
+            lines.append(f"\n【バイオレーション】{len(violations)}件")
+        else:
+            lines.append("\n【バイオレーション】記録なし（Zillowデータ範囲内）")
+
+        return "\n".join(lines)
+
+    def _fmt_financials(self, fin: dict) -> str:
+        is_cash = fin.get("is_cash", False)
+        lines = [
+            f"- 購入方法: {'全キャッシュ（ローンなし）' if is_cash else 'ローン（モーゲージ）'}",
+            f"- 購入価格: ${fin['purchase_price']:,.0f}",
+        ]
+        if is_cash:
+            lines += [
+                f"- 諸費用: ${fin['closing_costs']:,.0f}",
+                f"- 必要現金合計（全額キャッシュ）: ${fin['total_cash_needed']:,.0f}",
+                f"- ローン: なし",
+                f"- 月次モーゲージ: $0",
+            ]
+        else:
+            lines += [
+                f"- 頭金: ${fin['down_payment']:,.0f} ({fin['down_payment_pct']:.0f}%)",
+                f"- 諸費用: ${fin['closing_costs']:,.0f}",
+                f"- 必要現金合計: ${fin['total_cash_needed']:,.0f}",
+                f"- ローン額: ${fin['loan_amount']:,.0f}",
+                f"- 金利: {fin['mortgage_rate']:.3f}% / {fin['loan_term_years']}年固定",
+                f"- 月次モーゲージ: ${fin['monthly_mortgage']:,.0f}",
+            ]
+        lines += [
+            f"- 予想月額賃料: ${fin['monthly_gross_income']:,.0f}",
+            f"- 月次運営経費 ({fin.get('expense_ratio', 40):.0f}%): ${fin['monthly_expenses']:,.0f}",
+        ]
+        if fin.get("monthly_hoa", 0) > 0:
+            lines.append(f"- HOA/管理費: ${fin['monthly_hoa']:,.0f}/月")
+        lines += [
+            f"- 月次NOI: ${fin['monthly_noi']:,.0f}",
+            f"- 年間NOI: ${fin['annual_noi']:,.0f}",
+            f"- 月次キャッシュフロー: ${fin['monthly_cash_flow']:,.0f}",
+            f"- 年間キャッシュフロー: ${fin['annual_cash_flow']:,.0f}",
+            f"- キャップレート: {fin['cap_rate']:.2f}%",
+            f"- Cash-on-Cash リターン: {fin['coc_return']:.2f}%",
+            f"- GRM（賃料乗数）: {fin['grm']:.1f}倍",
+            f"- 賃料/価格比: {fin['rent_to_price']:.3f}%",
+        ]
+        return "\n".join(lines)
+
+    def _fmt_location(self, loc: dict) -> str:
+        if loc.get("error"):
+            return f"取得失敗: {loc['error']}"
+
+        lines = []
+        geo = loc.get("geocode", {})
+        if geo.get("formatted_address"):
+            lines.append(f"- 正式住所: {geo['formatted_address']}")
+
+        def fmt_places(label, items, max_count=4):
+            if not items:
+                return f"- {label}: データなし"
+            parts = [f"{p['name']}({p['distance_miles']}マイル)" for p in items[:max_count]]
+            return f"- {label}: {', '.join(parts)}"
+
+        lines.append(fmt_places("学校", loc.get("schools", [])))
+        lines.append(fmt_places("スーパー/食料品店", loc.get("supermarkets", [])))
+        lines.append(fmt_places("ショッピング", loc.get("shopping", [])))
+        lines.append(fmt_places("レストラン", loc.get("restaurants", [])))
+        lines.append(fmt_places("交通機関", loc.get("transit", [])))
+
+        road = loc.get("road_info", {})
+        if road.get("road_name"):
+            road_label = "主要道路沿い" if road.get("is_major_road") else "住宅街区内"
+            lines.append(f"- 道路状況: {road_label}（{road['road_name']}）")
+
+        crime = loc.get("crime", {})
+        if crime and not crime.get("error"):
+            safety = crime.get("safety_score", 0)
+            label  = crime.get("safety_label", "")
+            total  = crime.get("total_incidents", 0)
+            year   = crime.get("year", "")
+            top    = crime.get("top_crime_types", [])
+            lines.append(f"- 安全スコア: {safety}/100 ({label}) ― {year}年 半径800m以内: {total}件")
+            if top:
+                top_str = "、".join(f"{t['type']}({t['count']}件)" for t in top[:3])
+                lines.append(f"- 主要犯罪タイプ: {top_str}")
+        elif crime.get("error"):
+            lines.append(f"- 犯罪データ: {crime['error']}")
+
+        return "\n".join(lines)
+
+    @staticmethod
+    def _parse_json(text: str) -> dict:
+        """Claude レスポンスから JSON を抽出"""
+        try:
+            return json.loads(text.strip())
+        except json.JSONDecodeError:
+            pass
+        match = re.search(r"\{[\s\S]+\}", text)
+        if match:
+            try:
+                return json.loads(match.group())
+            except json.JSONDecodeError:
+                pass
+        return {"error": "JSON解析失敗", "raw": text[:500], "investment_score": 0}

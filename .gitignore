@@ -1,0 +1,31 @@
+# APIキー・秘密情報（絶対にアップしない）
+.env
+.env.local
+*.env
+
+# Streamlit local secrets
+.streamlit/secrets.toml
+
+# Python キャッシュ
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# 仮想環境
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ログ
+*.log
