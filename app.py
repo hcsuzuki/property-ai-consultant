@@ -46,6 +46,7 @@ st.markdown("""
     box-shadow: 0 2px 12px rgba(0,0,0,.08);
     margin-bottom: 1rem;
     height: 100%;
+    word-wrap: break-word; overflow-wrap: break-word; overflow: hidden;
 }
 .card h4 { color: #1a237e; border-bottom: 2px solid #e8eaf6; padding-bottom: .5rem; margin-bottom: 1rem; }
 
@@ -58,6 +59,7 @@ st.markdown("""
     padding: 1.4rem 1.8rem; border-radius: 12px;
     border-left: 6px solid; margin-bottom: 1.5rem;
     background: white; box-shadow: 0 2px 12px rgba(0,0,0,.08);
+    word-wrap: break-word; overflow-wrap: break-word; overflow: hidden;
 }
 .rec-hold  { border-color: #43a047; }
 .rec-sell  { border-color: #fb8c00; }
@@ -987,21 +989,21 @@ def show_results(
         # HUD Fair Market Rent
         hud = loc.get("hud_fmr", {}) if not loc.get("error") else {}
         if hud and not hud.get("error"):
-            st.markdown(f"""
-            <div class="card"><h4>🏛️ HUD 公正市場賃料 ({hud.get('year','')})</h4>
-            <div style="font-size:.82rem;color:#555;margin-bottom:.5rem">{hud.get('area_name','')}</div>
-            """, unsafe_allow_html=True)
+            hud_html = f'<div class="card"><h4>🏛️ HUD 公正市場賃料 ({hud.get("year","")})</h4>'
+            hud_html += f'<div style="font-size:.82rem;color:#555;margin-bottom:.5rem">{hud.get("area_name","")}</div>'
+            has_data = False
             for label, key in [("スタジオ", "studio"), ("1BR", "1br"), ("2BR", "2br"), ("3BR", "3br"), ("4BR", "4br")]:
                 val = hud.get(key, 0)
                 if val:
+                    has_data = True
                     curr = fin["monthly_gross_income"]
                     diff = curr - val
-                    diff_str = f"（設定賃料比 {diff:+,.0f}）" if val > 0 else ""
-                    st.markdown(f"""
-                    <div class="row"><span class="row-label">{label}</span>
-                    <span class="row-value">${val:,.0f}/月 {diff_str}</span></div>
-                    """, unsafe_allow_html=True)
-            st.markdown('<div style="font-size:.75rem;color:#aaa;margin-top:.5rem">出典: HUD Fair Market Rents</div></div>', unsafe_allow_html=True)
+                    diff_str = f"（設定賃料比 {diff:+,.0f}）"
+                    hud_html += f'<div class="row"><span class="row-label">{label}</span><span class="row-value">${val:,.0f}/月 <span style="font-size:.8rem;color:#888">{diff_str}</span></span></div>'
+            if not has_data:
+                hud_html += '<div style="color:#999;font-size:.88rem">賃料データなし（エリア未対応の可能性）</div>'
+            hud_html += '<div style="font-size:.75rem;color:#aaa;margin-top:.5rem">出典: HUD Fair Market Rents</div></div>'
+            st.markdown(hud_html, unsafe_allow_html=True)
         elif hud.get("error"):
             st.caption(f"HUD FMRデータ: {hud['error']}")
 
