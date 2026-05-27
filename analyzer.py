@@ -220,6 +220,36 @@ class PropertyAnalyzer:
         elif crime.get("error"):
             lines.append(f"- 犯罪データ: {crime['error']}")
 
+        # Walk Score
+        walk = loc.get("walk_score", {})
+        if walk and not walk.get("error"):
+            ws = walk.get("walk_score", 0)
+            ts = walk.get("transit_score", "N/A")
+            bs = walk.get("bike_score", "N/A")
+            lines.append(f"- Walk Score: {ws}/100 ({walk.get('walk_desc','')}) / Transit: {ts} / Bike: {bs}")
+
+        # Flood zone
+        flood = loc.get("flood_zone", {})
+        if flood and not flood.get("error"):
+            lines.append(f"- 洪水ゾーン: {flood.get('zone','X')} ― {flood.get('description','')} (保険必須: {'はい' if flood.get('insurance_required') else 'いいえ'})")
+
+        # Census demographics
+        demo = loc.get("demographics", {})
+        if demo and not demo.get("error"):
+            lines.append(f"- 世帯中央所得: ${demo.get('median_income', 0):,}/年")
+            lines.append(f"- 総人口: {demo.get('total_population', 0):,}人")
+            lines.append(f"- 空室率: {demo.get('vacancy_rate', 0):.1f}% / 借家比率: {demo.get('renter_pct', 0):.1f}%")
+
+        # BLS unemployment
+        unemp = loc.get("unemployment", {})
+        if unemp and not unemp.get("error"):
+            lines.append(f"- 州失業率: {unemp.get('unemployment_rate', 0):.1f}% ({unemp.get('period', '')})")
+
+        # HUD Fair Market Rent
+        hud = loc.get("hud_fmr", {})
+        if hud and not hud.get("error"):
+            lines.append(f"- HUD公正市場賃料 ({hud.get('area_name', '')}): 1BR=${hud.get('1br', 0):,} / 2BR=${hud.get('2br', 0):,} / 3BR=${hud.get('3br', 0):,}")
+
         return "\n".join(lines)
 
     @staticmethod

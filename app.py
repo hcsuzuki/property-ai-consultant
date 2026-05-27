@@ -110,15 +110,15 @@ def calc_financials(
     closing = purchase_price * (closing_pct / 100)
 
     if is_cash:
-        down       = purchase_price   # 全額キャッシュ
-        loan       = 0.0
-        mortgage   = 0.0
-        cash_needed = purchase_price + closing
+        down         = purchase_price
+        loan         = 0.0
+        mortgage     = 0.0
+        cash_needed  = purchase_price + closing
         eff_down_pct = 100.0
     else:
-        down       = purchase_price * (down_pct / 100)
-        loan       = purchase_price - down
-        cash_needed = down + closing
+        down         = purchase_price * (down_pct / 100)
+        loan         = purchase_price - down
+        cash_needed  = down + closing
         eff_down_pct = down_pct
         mr = (rate / 100) / 12
         n  = term_years * 12
@@ -152,7 +152,7 @@ def calc_financials(
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# 追加計算関数
+# 基本計算関数
 # ──────────────────────────────────────────────────────────────────────────────
 
 def calc_remaining_loan_balance(loan: float, rate_pct: float, term_years: int, year: int) -> float:
@@ -204,12 +204,12 @@ def calc_depreciation(purchase_price: float, land_pct: float = 20.0) -> dict:
     depr_basis  = purchase_price - land_val
     annual_depr = depr_basis / 27.5
     return {
-        "land_value":          land_val,
-        "land_pct":            land_pct,
-        "depreciable_basis":   depr_basis,
-        "annual_depreciation": annual_depr,
+        "land_value":           land_val,
+        "land_pct":             land_pct,
+        "depreciable_basis":    depr_basis,
+        "annual_depreciation":  annual_depr,
         "monthly_depreciation": annual_depr / 12,
-        "tax_savings":         {r: annual_depr * r / 100 for r in [20, 25, 30, 37]},
+        "tax_savings":          {r: annual_depr * r / 100 for r in [20, 25, 30, 37]},
     }
 
 
@@ -223,11 +223,119 @@ def calc_breakeven_rent(fin: dict) -> dict:
     curr    = fin["monthly_gross_income"]
     margin  = curr - be_rent
     return {
-        "breakeven_rent":    be_rent,
-        "current_rent":      curr,
-        "margin":            margin,
-        "margin_pct":        (margin / be_rent * 100) if be_rent > 0 else 0,
+        "breakeven_rent":     be_rent,
+        "current_rent":       curr,
+        "margin":             margin,
+        "margin_pct":         (margin / be_rent * 100) if be_rent > 0 else 0,
         "is_above_breakeven": margin >= 0,
+    }
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Phase 2: 高度財務指標 計算関数
+# ──────────────────────────────────────────────────────────────────────────────
+
+def calc_irr(fin: dict, sim: list, exit_sell_pct: float = 6.0) -> dict:
+    """IRR（内部収益率）とEquity Multipleを計算"""
+    try:
+        import numpy_financial as npf
+    except ImportError:
+        return {"error": "numpy-financial が必要です（pip install numpy-financial）"}
+    initial    = -fin["total_cash_needed"]
+    annual_cfs = [row["年間CF"] for row in sim]
+    last_row   = sim[-1]
+    sell_price = last_row["物件価値"]
+    loan_bal   = last_row["ローン残高"]
+    exit_equity = sell_price - loan_bal - sell_price * exit_sell_pct / 100
+    cf = [initial] + annual_cfs[:]
+    cf[-1] += exit_equity
+    try:
+        irr_val = npf.irr(cf)
+        total_in = sum(annual_cfs) + exit_equity
+        em = total_in / abs(initial) if initial != 0 else 0
+        return {
+            "irr":               irr_val * 100,
+            "equity_multiple":   em,
+            "exit_equity":       exit_equity,
+            "total_cash_received": total_in,
+            "initial_investment": abs(initial),
+        }
+    except Exception as e:
+        return {"error": f"IRR計算失敗: {str(e)}"}
+
+
+def calc_dscr(fin: dict) -> dict:
+    """DSCR（元利返済カバー率）を計算"""
+    if fin.get("is_cash"):
+        return {"dscr": float("inf"), "is_cash": True, "pass": True, "label": "N/A（全キャッシュ）"}
+    annual_noi  = fin["annual_noi"]
+    annual_debt = fin["monthly_mortgage"] * 12
+    if annual_debt <= 0:
+        return {"error": "ローン返済額が0です"}
+    dscr = annual_noi / annual_debt
+    return {
+        "dscr":               dscr,
+        "annual_noi":         annual_noi,
+        "annual_debt_service": annual_debt,
+        "pass":               dscr >= 1.25,
+        "label": "優秀" if dscr >= 1.5 else "合格" if dscr >= 1.25 else "警告" if dscr >= 1.0 else "危険",
+    }
+
+
+def calc_1pct_rule(fin: dict) -> dict:
+    """1%ルール判定（月額賃料 ÷ 購入価格）"""
+    monthly_rent = fin["monthly_gross_income"]
+    purchase     = fin["purchase_price"]
+    target       = purchase * 0.01
+    ratio        = monthly_rent / purchase * 100
+    return {
+        "ratio":        ratio,
+        "target_rent":  target,
+        "current_rent": monthly_rent,
+        "pass":         ratio >= 1.0,
+        "gap":          monthly_rent - target,
+    }
+
+
+def calc_breakeven_occupancy(fin: dict) -> dict:
+    """損益分岐点稼働率（Break-even Occupancy）を計算"""
+    gross_rent = fin["monthly_gross_income"]
+    if gross_rent <= 0:
+        return {"error": "賃料が0です"}
+    monthly_fixed = fin["monthly_expenses"] + fin["monthly_hoa"] + fin["monthly_mortgage"]
+    be_occ = monthly_fixed / gross_rent * 100
+    return {
+        "breakeven_occupancy_pct": be_occ,
+        "monthly_fixed_costs":     monthly_fixed,
+        "gross_rent":              gross_rent,
+        "safe_vacancy_pct":        100 - be_occ,
+        "pass":                    be_occ < 85,
+        "label": "安全" if be_occ < 75 else "普通" if be_occ < 85 else "注意" if be_occ < 95 else "危険",
+    }
+
+
+def calc_after_tax_cf(fin: dict, depr: dict, tax_bracket: float = 25.0) -> dict:
+    """税引後キャッシュフローを計算（概算）"""
+    is_cash       = fin.get("is_cash", False)
+    annual_noi    = fin["annual_noi"]
+    annual_depr   = depr["annual_depreciation"]
+    annual_interest = fin["monthly_mortgage"] * 12 * 0.75 if not is_cash else 0
+    taxable_income  = annual_noi - annual_interest - annual_depr
+    if taxable_income > 0:
+        tax_owed   = taxable_income * tax_bracket / 100
+        tax_benefit = 0.0
+    else:
+        tax_owed    = 0.0
+        tax_benefit = min(abs(taxable_income), 25000) * tax_bracket / 100
+    after_tax_annual = fin["annual_cash_flow"] - tax_owed + tax_benefit
+    return {
+        "pre_tax_annual_cf":  fin["annual_cash_flow"],
+        "taxable_income":     taxable_income,
+        "tax_bracket_pct":    tax_bracket,
+        "tax_owed":           tax_owed,
+        "tax_benefit":        tax_benefit,
+        "after_tax_annual_cf": after_tax_annual,
+        "after_tax_monthly_cf": after_tax_annual / 12,
     }
 
 
@@ -246,10 +354,10 @@ def gauge_chart(score: int) -> go.Figure:
             "axis": {"range": [0, 100], "tickvals": [0, 25, 50, 65, 80, 100]},
             "bar": {"color": color, "thickness": 0.28},
             "steps": [
-                {"range": [0, 50],  "color": "#ffebee"},
-                {"range": [50, 65], "color": "#fff3e0"},
-                {"range": [65, 80], "color": "#e8f5e9"},
-                {"range": [80, 100],"color": "#e0f2f1"},
+                {"range": [0, 50],   "color": "#ffebee"},
+                {"range": [50, 65],  "color": "#fff3e0"},
+                {"range": [65, 80],  "color": "#e8f5e9"},
+                {"range": [80, 100], "color": "#e0f2f1"},
             ],
             "threshold": {"line": {"color": color, "width": 4}, "thickness": 0.85, "value": score},
         },
@@ -273,7 +381,7 @@ def breakdown_chart(breakdown: dict) -> go.Figure:
         breakdown.get("property_max", 20),
         breakdown.get("market_max", 10),
     ]
-    pcts = [v / m * 100 if m else 0 for v, m in zip(vals, maxs)]
+    pcts   = [v / m * 100 if m else 0 for v, m in zip(vals, maxs)]
     colors = ["#43a047" if p >= 70 else "#fb8c00" if p >= 45 else "#e53935" for p in pcts]
 
     fig = go.Figure()
@@ -360,6 +468,35 @@ def sensitivity_chart_rental(fin: dict) -> go.Figure:
     return fig
 
 
+def mortgage_rate_chart(market_data: dict) -> go.Figure | None:
+    """FRED住宅ローン金利推移チャート"""
+    rates_data = market_data.get("mortgage_rates", {})
+    if rates_data.get("error"):
+        return None
+    fig    = go.Figure()
+    colors = {"MORTGAGE30US": "#1565c0", "MORTGAGE15US": "#2e7d32"}
+    for series_id, info in rates_data.items():
+        if isinstance(info, dict) and "history" in info:
+            dates  = [h[0] for h in info["history"]]
+            values = [h[1] for h in info["history"]]
+            fig.add_trace(go.Scatter(
+                x=dates, y=values,
+                name=f"{info['label']} ({values[-1]:.2f}%)",
+                line=dict(color=colors.get(series_id, "#666"), width=2),
+                mode="lines",
+            ))
+    fig.update_layout(
+        title="住宅ローン金利推移（直近1年）", height=280,
+        margin=dict(l=10, r=10, t=50, b=10),
+        paper_bgcolor="rgba(0,0,0,0)",
+        yaxis=dict(title="金利 (%)", ticksuffix="%"),
+        xaxis=dict(showgrid=False),
+        legend=dict(orientation="h", y=-0.25),
+        font=dict(size=10),
+    )
+    return fig
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Results display
 # ──────────────────────────────────────────────────────────────────────────────
@@ -373,10 +510,15 @@ def show_results(
     rent_growth: float = 3.0,
     appreciation: float = 3.0,
     land_pct: float = 20.0,
+    tax_bracket: float = 25.0,
+    exit_cost_pct: float = 6.0,
+    market_data: dict = None,
 ):
     score     = analysis.get("investment_score", 0)
     breakdown = analysis.get("score_breakdown", {})
     is_cash   = fin.get("is_cash", False)
+    depr      = calc_depreciation(fin["purchase_price"], land_pct)
+    sim       = calc_10year_simulation(fin, rent_growth, appreciation)
 
     # ── Score section ─────────────────────────────────────────────────────────
     st.markdown('<div class="section-title">📊 投資スコア分析</div>', unsafe_allow_html=True)
@@ -452,8 +594,8 @@ def show_results(
         )
         rent_zest = prop.get("rentZestimate")
         if rent_zest:
-            diff      = fin["monthly_gross_income"] - rent_zest
-            diff_pct  = diff / rent_zest * 100
+            diff     = fin["monthly_gross_income"] - rent_zest
+            diff_pct = diff / rent_zest * 100
             b4.metric(
                 "Zillow推定賃料との差",
                 f"${diff:+,.0f}/月",
@@ -461,6 +603,73 @@ def show_results(
             )
         else:
             b4.metric("Zillow Rent Zestimate", "データなし", "")
+
+    # ── 高度財務指標 ──────────────────────────────────────────────────────────
+    st.markdown('<div class="section-title">🎯 高度財務指標</div>', unsafe_allow_html=True)
+    st.caption("プロ投資家が使う主要指標でリターンと安全性を多角的に評価します")
+
+    irr_data  = calc_irr(fin, sim, exit_cost_pct)
+    dscr_data = calc_dscr(fin)
+    pct_data  = calc_1pct_rule(fin)
+    beo_data  = calc_breakeven_occupancy(fin)
+    atcf_data = calc_after_tax_cf(fin, depr, tax_bracket)
+
+    adv1, adv2, adv3 = st.columns(3)
+    with adv1:
+        html = '<div class="card"><h4>📈 リターン指標</h4>'
+        if "error" not in irr_data:
+            irr_color  = "#2e7d32" if irr_data["irr"] >= 12 else "#e65100" if irr_data["irr"] >= 8 else "#b71c1c"
+            irr_label  = "優秀" if irr_data["irr"] >= 12 else "良好" if irr_data["irr"] >= 8 else "普通"
+            em_label   = "優秀" if irr_data["equity_multiple"] >= 2.0 else "良好" if irr_data["equity_multiple"] >= 1.5 else "普通"
+            html += f'<div class="row"><span class="row-label">IRR（10年出口想定）</span><span class="row-value" style="color:{irr_color}">{irr_data["irr"]:.1f}% ― {irr_label}</span></div>'
+            html += f'<div class="row"><span class="row-label">Equity Multiple</span><span class="row-value">{irr_data["equity_multiple"]:.2f}× ― {em_label}</span></div>'
+            html += f'<div class="row"><span class="row-label">出口エクイティ（10年後）</span><span class="row-value">${irr_data["exit_equity"]:,.0f}</span></div>'
+            html += f'<div class="row"><span class="row-label">初期投資額</span><span class="row-value">${irr_data["initial_investment"]:,.0f}</span></div>'
+            html += f'<div class="row"><span class="row-label">受取総額（CF＋出口）</span><span class="row-value">${irr_data["total_cash_received"]:,.0f}</span></div>'
+        else:
+            html += f'<div style="color:#999;font-size:.88rem">{irr_data["error"]}</div>'
+        html += "</div>"
+        st.markdown(html, unsafe_allow_html=True)
+
+    with adv2:
+        html = '<div class="card"><h4>🏦 安全性指標</h4>'
+        if "error" not in dscr_data:
+            if dscr_data.get("is_cash"):
+                html += '<div class="row"><span class="row-label">DSCR（返済カバー率）</span><span class="row-value" style="color:#2e7d32">∞ ― 全キャッシュ</span></div>'
+            else:
+                dscr_color = "#2e7d32" if dscr_data["dscr"] >= 1.5 else "#e65100" if dscr_data["dscr"] >= 1.0 else "#b71c1c"
+                dscr_icon  = "✅" if dscr_data["pass"] else "❌"
+                html += f'<div class="row"><span class="row-label">DSCR（返済カバー率）</span><span class="row-value" style="color:{dscr_color}">{dscr_data["dscr"]:.2f} {dscr_icon} ― {dscr_data["label"]}</span></div>'
+                html += f'<div class="row"><span class="row-label">年間NOI</span><span class="row-value">${dscr_data["annual_noi"]:,.0f}</span></div>'
+                html += f'<div class="row"><span class="row-label">年間元利返済</span><span class="row-value">${dscr_data["annual_debt_service"]:,.0f}</span></div>'
+
+        # Break-even occupancy
+        if "error" not in beo_data:
+            beo_color = "#2e7d32" if beo_data["pass"] else "#b71c1c"
+            beo_icon  = "✅" if beo_data["pass"] else "⚠️"
+            html += f'<div class="row"><span class="row-label">損益分岐稼働率</span><span class="row-value" style="color:{beo_color}">{beo_data["breakeven_occupancy_pct"]:.1f}% {beo_icon} ― {beo_data["label"]}</span></div>'
+            html += f'<div class="row"><span class="row-label">許容空室率</span><span class="row-value">{beo_data["safe_vacancy_pct"]:.1f}%</span></div>'
+        html += "</div>"
+        st.markdown(html, unsafe_allow_html=True)
+
+    with adv3:
+        html = '<div class="card"><h4>💡 収益ルール・税引後</h4>'
+        # 1% Rule
+        pct_color = "#2e7d32" if pct_data["pass"] else "#e65100"
+        pct_icon  = "✅ クリア" if pct_data["pass"] else "❌ 未達"
+        html += f'<div class="row"><span class="row-label">1%ルール</span><span class="row-value" style="color:{pct_color}">{pct_data["ratio"]:.3f}% ― {pct_icon}</span></div>'
+        html += f'<div class="row"><span class="row-label">　目標賃料（1%）</span><span class="row-value">${pct_data["target_rent"]:,.0f}/月</span></div>'
+        html += f'<div class="row"><span class="row-label">　現在賃料との差</span><span class="row-value">${pct_data["gap"]:+,.0f}/月</span></div>'
+        # After-Tax CF
+        atcf_color = "#2e7d32" if atcf_data["after_tax_annual_cf"] >= 0 else "#b71c1c"
+        html += f'<div class="row"><span class="row-label">税引後CF（年・税率{tax_bracket:.0f}%）</span><span class="row-value" style="color:{atcf_color}">${atcf_data["after_tax_annual_cf"]:,.0f}</span></div>'
+        html += f'<div class="row"><span class="row-label">税引後CF（月）</span><span class="row-value" style="color:{atcf_color}">${atcf_data["after_tax_monthly_cf"]:,.0f}</span></div>'
+        if atcf_data["tax_benefit"] > 0:
+            html += f'<div class="row"><span class="row-label">　節税効果（減価償却等）</span><span class="row-value" style="color:#2e7d32">+${atcf_data["tax_benefit"]:,.0f}</span></div>'
+        elif atcf_data["tax_owed"] > 0:
+            html += f'<div class="row"><span class="row-label">　追加税負担</span><span class="row-value" style="color:#e65100">-${atcf_data["tax_owed"]:,.0f}</span></div>'
+        html += "</div>"
+        st.markdown(html, unsafe_allow_html=True)
 
     # ── Details grid ──────────────────────────────────────────────────────────
     st.markdown('<div class="section-title">📋 詳細データ</div>', unsafe_allow_html=True)
@@ -514,12 +723,11 @@ def show_results(
                 ("最終売却",         f"{usd(prop.get('lastSoldPrice',0))} ({prop.get('lastSoldDate','')})"
                                      if prop.get("lastSoldPrice") else "N/A"),
             ]
-            # 賃料市場比較
             if prop.get("rentZestimate") and fin.get("monthly_gross_income"):
-                rz        = prop["rentZestimate"]
-                ur        = fin["monthly_gross_income"]
-                diff_pct  = (ur - rz) / rz * 100
-                marker    = "⬆️ 相場より高め" if diff_pct > 5 else "⬇️ 相場より低め" if diff_pct < -5 else "≈ 相場並み"
+                rz       = prop["rentZestimate"]
+                ur       = fin["monthly_gross_income"]
+                diff_pct = (ur - rz) / rz * 100
+                marker   = "⬆️ 相場より高め" if diff_pct > 5 else "⬇️ 相場より低め" if diff_pct < -5 else "≈ 相場並み"
                 prop_rows.append(("賃料市場比較", f"{marker} ({diff_pct:+.1f}%)"))
         html = '<div class="card"><h4>🏠 物件情報</h4>'
         if prop_rows:
@@ -548,9 +756,49 @@ def show_results(
     st.markdown('<div class="section-title">📍 周辺環境・安全性</div>', unsafe_allow_html=True)
 
     if not loc.get("error"):
+
+        # Walk Score バナー（設定済みの場合）
+        walk = loc.get("walk_score", {})
+        if walk and not walk.get("error"):
+            ws  = walk.get("walk_score", 0)
+            ts  = walk.get("transit_score")
+            bs  = walk.get("bike_score")
+            w_color = "#1565c0" if ws >= 70 else "#e65100" if ws >= 50 else "#b71c1c"
+            walk_html = f"""
+            <div style="background:#e3f2fd;border-left:4px solid #1565c0;border-radius:8px;
+                        padding:.9rem 1.2rem;margin-bottom:1rem;display:flex;gap:2rem;align-items:center">
+                <div><span style="font-size:1.5rem;font-weight:700;color:{w_color}">{ws}</span>
+                     <span style="font-size:.82rem;color:#555;margin-left:.3rem">Walk Score<br>{walk.get("walk_desc","")}</span></div>
+            """
+            if ts is not None:
+                t_color = "#2e7d32" if ts >= 70 else "#e65100" if ts >= 50 else "#b71c1c"
+                walk_html += f'<div><span style="font-size:1.5rem;font-weight:700;color:{t_color}">{ts}</span><span style="font-size:.82rem;color:#555;margin-left:.3rem">Transit Score<br>{walk.get("transit_desc","")}</span></div>'
+            if bs is not None:
+                b_color = "#2e7d32" if bs >= 70 else "#e65100" if bs >= 50 else "#b71c1c"
+                walk_html += f'<div><span style="font-size:1.5rem;font-weight:700;color:{b_color}">{bs}</span><span style="font-size:.82rem;color:#555;margin-left:.3rem">Bike Score<br>{walk.get("bike_desc","")}</span></div>'
+            walk_html += "</div>"
+            st.markdown(walk_html, unsafe_allow_html=True)
+
+        # 洪水ゾーン バナー
+        flood = loc.get("flood_zone", {})
+        if flood and not flood.get("error"):
+            fcolor = flood.get("color", "#f57f17")
+            ficon  = "🚨" if flood.get("insurance_required") else "✅"
+            fbg    = "#ffebee" if flood.get("insurance_required") else "#e8f5e9"
+            st.markdown(f"""
+            <div style="background:{fbg};border-left:4px solid {fcolor};border-radius:8px;
+                        padding:.9rem 1.2rem;margin-bottom:1rem">
+                <span style="font-weight:700;color:{fcolor};font-size:.95rem">
+                    {ficon} 洪水リスク: ゾーン {flood.get('zone','X')} ― {flood.get('description','')}
+                </span>
+                {'<span style="font-size:.82rem;color:#b71c1c;margin-left:.8rem">⚠️ 洪水保険への加入が必須です（SFHA指定エリア）</span>' if flood.get('insurance_required') else ''}
+                <span style="font-size:.78rem;color:#888;margin-left:.8rem">出典: FEMA NFHL</span>
+            </div>
+            """, unsafe_allow_html=True)
+
         la, lb, lc = st.columns(3)
 
-        # 学校: Zillow データ優先（評価スコア付き）、なければ Google Maps
+        # 学校
         zillow_schools = prop.get("schools", [])
         google_schools = loc.get("schools", [])
 
@@ -568,11 +816,11 @@ def show_results(
         if zillow_schools:
             h = '<div class="card"><h4>🎓 学区・近隣の学校</h4>'
             for s in zillow_schools[:4]:
-                name    = s.get("name", "")
-                rating  = s.get("rating", "")
-                dist    = s.get("distance", "")
-                level   = s.get("level", "")
-                parts   = []
+                name   = s.get("name", "")
+                rating = s.get("rating", "")
+                dist   = s.get("distance", "")
+                level  = s.get("level", "")
+                parts  = []
                 if rating: parts.append(f"⭐{rating}/10")
                 if dist:   parts.append(f"{dist}マイル")
                 if level:  parts.append(level)
@@ -587,7 +835,7 @@ def show_results(
         place_card(lb, "🛒 スーパー/食料品", loc.get("supermarkets", []))
         place_card(lc, "🏪 ショッピング",    loc.get("shopping", []))
 
-        # 犯罪データ表示
+        # 犯罪データ
         crime = loc.get("crime", {})
         if crime and not crime.get("error"):
             safety_score    = crime.get("safety_score", 0)
@@ -630,6 +878,20 @@ def show_results(
                 st.warning(f"⚠️ **道路情報**: 主要道路沿い（{road['road_name']}）― 騒音・安全性に注意")
             else:
                 st.success(f"✅ **道路情報**: 住宅街区内の静かな道路（{road['road_name']}）")
+
+        # Census 人口統計
+        demo = loc.get("demographics", {})
+        if demo and not demo.get("error"):
+            st.markdown('<div class="section-title">🏘️ 近隣統計情報（US Census ACS）</div>', unsafe_allow_html=True)
+            dem1, dem2, dem3, dem4 = st.columns(4)
+            dem1.metric("世帯中央所得", f"${demo.get('median_income', 0):,.0f}/年",
+                        "高所得エリア" if demo.get("median_income", 0) >= 80000 else "標準エリア")
+            dem2.metric("総人口", f"{demo.get('total_population', 0):,}人", demo.get("name", ""))
+            dem3.metric("空室率", f"{demo.get('vacancy_rate', 0):.1f}%",
+                        "低空室（需要高）" if demo.get("vacancy_rate", 0) < 8 else "要確認")
+            dem4.metric("借家比率", f"{demo.get('renter_pct', 0):.1f}%",
+                        "賃貸需要高" if demo.get("renter_pct", 0) >= 40 else "持家エリア")
+
     else:
         st.info(f"周辺環境データ取得失敗: {loc.get('error')}")
 
@@ -644,7 +906,6 @@ def show_results(
         f'（賃料+{rent_growth:.1f}%/年・価格+{appreciation:.1f}%/年）</div>',
         unsafe_allow_html=True,
     )
-    sim = calc_10year_simulation(fin, rent_growth, appreciation)
     st.plotly_chart(ten_year_chart(sim), use_container_width=True)
 
     sim_df = pd.DataFrame(sim).copy()
@@ -654,7 +915,6 @@ def show_results(
 
     # ── Depreciation ──────────────────────────────────────────────────────────
     st.markdown('<div class="section-title">🏛️ 減価償却・節税効果（日本人投資家向け）</div>', unsafe_allow_html=True)
-    depr = calc_depreciation(fin["purchase_price"], land_pct)
     dep1, dep2, dep3 = st.columns(3)
     dep1.metric("年間減価償却費", f"${depr['annual_depreciation']:,.0f}",
                 f"月額 ${depr['monthly_depreciation']:,.0f}")
@@ -689,6 +949,61 @@ def show_results(
 - 日本での確定申告でも申告が必要（外国税額控除を活用）
 - 専門家（米国CPA / Tax Attorney）への相談を強く推奨します
         """)
+
+    # ── Market context (FRED + BLS + HUD FMR) ────────────────────────────────
+    st.markdown('<div class="section-title">📊 マーケット・コンテキスト</div>', unsafe_allow_html=True)
+
+    mc1, mc2 = st.columns([2, 1])
+
+    with mc1:
+        # FRED 住宅ローン金利チャート
+        if market_data:
+            rate_fig = mortgage_rate_chart(market_data)
+            if rate_fig:
+                st.plotly_chart(rate_fig, use_container_width=True)
+            else:
+                rates_data = market_data.get("mortgage_rates", {})
+                if rates_data.get("error"):
+                    st.caption(f"📉 金利データ: {rates_data['error']}")
+
+    with mc2:
+        # BLS 失業率
+        unemp = loc.get("unemployment", {}) if not loc.get("error") else {}
+        if unemp and not unemp.get("error"):
+            u_rate = unemp.get("unemployment_rate", 0)
+            u_color = "#2e7d32" if u_rate < 4 else "#e65100" if u_rate < 6 else "#b71c1c"
+            st.markdown(f"""
+            <div class="card"><h4>📊 雇用状況（BLS）</h4>
+            <div class="row"><span class="row-label">州失業率</span>
+            <span class="row-value" style="color:{u_color}">{u_rate:.1f}% （{unemp.get('period','')}）</span></div>
+            <div class="row"><span class="row-label">評価</span>
+            <span class="row-value">{'低失業率 ✅' if u_rate < 4 else '標準 ✅' if u_rate < 6 else '要注意 ⚠️'}</span></div>
+            <div style="font-size:.75rem;color:#aaa;margin-top:.5rem">出典: Bureau of Labor Statistics</div>
+            </div>
+            """, unsafe_allow_html=True)
+        elif unemp.get("error"):
+            st.caption(f"失業率データ: {unemp['error']}")
+
+        # HUD Fair Market Rent
+        hud = loc.get("hud_fmr", {}) if not loc.get("error") else {}
+        if hud and not hud.get("error"):
+            st.markdown(f"""
+            <div class="card"><h4>🏛️ HUD 公正市場賃料 ({hud.get('year','')})</h4>
+            <div style="font-size:.82rem;color:#555;margin-bottom:.5rem">{hud.get('area_name','')}</div>
+            """, unsafe_allow_html=True)
+            for label, key in [("スタジオ", "studio"), ("1BR", "1br"), ("2BR", "2br"), ("3BR", "3br"), ("4BR", "4br")]:
+                val = hud.get(key, 0)
+                if val:
+                    curr = fin["monthly_gross_income"]
+                    diff = curr - val
+                    diff_str = f"（設定賃料比 {diff:+,.0f}）" if val > 0 else ""
+                    st.markdown(f"""
+                    <div class="row"><span class="row-label">{label}</span>
+                    <span class="row-value">${val:,.0f}/月 {diff_str}</span></div>
+                    """, unsafe_allow_html=True)
+            st.markdown('<div style="font-size:.75rem;color:#aaa;margin-top:.5rem">出典: HUD Fair Market Rents</div></div>', unsafe_allow_html=True)
+        elif hud.get("error"):
+            st.caption(f"HUD FMRデータ: {hud['error']}")
 
     # ── Strengths & Risks ─────────────────────────────────────────────────────
     st.markdown('<div class="section-title">⚖️ 強みとリスク</div>', unsafe_allow_html=True)
@@ -746,7 +1061,7 @@ def main():
     <div class="main-header">
         <h1>🏠 AI不動産投資コンサルタント</h1>
         <p>日本人投資家向け 米国不動産 投資分析プラットフォーム</p>
-        <p style="font-size:.82rem;opacity:.7;margin-top:.4rem">Powered by Claude AI · Google Maps · Zillow</p>
+        <p style="font-size:.82rem;opacity:.7;margin-top:.4rem">Powered by Claude AI · Google Maps · Zillow · FEMA · Census · FRED</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -781,20 +1096,35 @@ def main():
             help="物件価格に占める土地の割合（減価償却計算に使用 — 土地は償却不可）",
         )
         st.divider()
+        st.markdown("### 💡 高度指標設定")
+        tax_bracket = st.slider(
+            "適用税率 (%)", 10, 45, 25, 5,
+            help="税引後CFの計算に使用する所得税率（連邦＋州の合計目安）",
+        )
+        exit_cost_pct = st.slider(
+            "出口コスト率 (%)", 3.0, 10.0, 6.0, 0.5,
+            help="10年後売却時の仲介手数料・諸費用（IRR計算用）",
+        )
+        st.divider()
         st.markdown("""
 **📊 指標の目安**
 | 指標 | 優良 | 標準 | 要注意 |
 |---|---|---|---|
 | Cap Rate | ≥6% | 4-6% | <4% |
 | CoC Return | ≥8% | 4-8% | <4% |
-| GRM | <12× | 12-18× | >18× |
-| 投資スコア | ≥80 | 50-79 | <50 |
+| DSCR | ≥1.5 | 1.25-1.5 | <1.25 |
+| IRR | ≥12% | 8-12% | <8% |
+| 1%ルール | ≥1% | — | <1% |
         """)
         st.divider()
         st.markdown("**🔑 API 設定確認**")
         st.markdown(f"Zillow (RapidAPI): {'✅' if os.getenv('RAPIDAPI_KEY') else '❌ 未設定'}")
         st.markdown(f"Google Maps:       {'✅' if os.getenv('GOOGLE_MAPS_API_KEY') else '❌ 未設定'}")
         st.markdown(f"Anthropic Claude:  {'✅' if os.getenv('ANTHROPIC_API_KEY') else '❌ 未設定'}")
+        st.markdown(f"FRED (金利):       {'✅' if os.getenv('FRED_API_KEY') else '⚪ 未設定'}")
+        st.markdown(f"Census (統計):     {'✅' if os.getenv('CENSUS_API_KEY') else '⚪ 未設定'}")
+        st.markdown(f"HUD (FMR):         {'✅' if os.getenv('HUD_API_TOKEN') else '⚪ 未設定'}")
+        st.markdown(f"Walk Score:        {'✅' if os.getenv('WALKSCORE_API_KEY') else '⚪ 未設定'}")
 
     # ── Comparison list (always visible at top) ───────────────────────────────
     if st.session_state.comparison_list:
@@ -809,7 +1139,6 @@ def main():
     # ── Input form ────────────────────────────────────────────────────────────
     st.markdown('<div class="section-title">🔍 物件情報入力</div>', unsafe_allow_html=True)
 
-    # 購入方法はフォームの外に置いて動的切り替えを実現
     purchase_type = st.radio(
         "購入方法",
         ["🏦 ローン（モーゲージ）", "💵 全キャッシュ"],
@@ -830,17 +1159,14 @@ def main():
             purchase_price = st.number_input("購入価格 ($)", 50_000, 10_000_000, 450_000, 5_000, format="%d")
 
         if is_cash:
-            # キャッシュ購入：賃料・HOAのみ
             st.markdown("#### 💵 キャッシュ購入 ― 収益条件")
             cc1, cc2 = st.columns(2)
             with cc1: monthly_rent = st.number_input("予想月額賃料 ($)", 500, 30_000, 2_400, 50)
             with cc2: hoa          = st.number_input("HOA/管理費 ($/月)", 0, 3_000, 0, 25)
-            # ローン不要
             down_pct = 100
             rate     = 0.0
             term     = 30
         else:
-            # ローン購入：全項目
             st.markdown("#### 🏦 ローン・収益条件")
             c1, c2, c3, c4, c5 = st.columns(5)
             with c1: down_pct     = st.slider("頭金 (%)", 10, 50, 25)
@@ -878,11 +1204,15 @@ def main():
 
         status.markdown("🏠 **Zillowから物件データを取得中…**")
         prop_data = fetcher.get_property_data(address)
-        progress.progress(30)
+        progress.progress(25)
 
-        status.markdown("📍 **Google Mapsで周辺環境を分析中…**")
+        status.markdown("📍 **Google Maps・各種APIで周辺環境を分析中…**")
         loc_data = fetcher.get_all_location_data(address)
-        progress.progress(60)
+        progress.progress(55)
+
+        status.markdown("📊 **金融市場データを取得中（FRED）…**")
+        market_data = fetcher.get_market_data()
+        progress.progress(75)
 
         status.markdown("🤖 **Claude AIが投資分析を実行中…**")
         analysis = analyzer.analyze_property(prop_data, loc_data, fin)
@@ -896,20 +1226,25 @@ def main():
             return
 
         st.success(f"✅ 分析完了: **{address}**")
-        show_results(analysis, prop_data, loc_data, fin, usd_to_jpy,
-                     rent_growth, appreciation, land_pct)
+        show_results(
+            analysis, prop_data, loc_data, fin, usd_to_jpy,
+            rent_growth, appreciation, land_pct,
+            tax_bracket, exit_cost_pct, market_data,
+        )
 
         # ── Add to comparison list ─────────────────────────────────────────
         st.divider()
         if st.button("📊 この物件を比較リストに追加", key="add_comp", use_container_width=False):
+            irr_d = calc_irr(fin, calc_10year_simulation(fin, rent_growth, appreciation), exit_cost_pct)
             entry = {
-                "住所":    address[:45] + ("…" if len(address) > 45 else ""),
-                "スコア":  analysis.get("investment_score", 0),
-                "Cap Rate": f"{fin['cap_rate']:.2f}%",
-                "CoC":     f"{fin['coc_return']:.2f}%",
-                "月次CF":  f"${fin['monthly_cash_flow']:,.0f}",
-                "購入価格": f"${fin['purchase_price']:,.0f}",
-                "推奨":    analysis.get("recommendation", ""),
+                "住所":       address[:45] + ("…" if len(address) > 45 else ""),
+                "スコア":     analysis.get("investment_score", 0),
+                "Cap Rate":   f"{fin['cap_rate']:.2f}%",
+                "CoC":        f"{fin['coc_return']:.2f}%",
+                "月次CF":     f"${fin['monthly_cash_flow']:,.0f}",
+                "IRR":        f"{irr_d.get('irr', 0):.1f}%" if "error" not in irr_d else "N/A",
+                "購入価格":   f"${fin['purchase_price']:,.0f}",
+                "推奨":       analysis.get("recommendation", ""),
             }
             already = any(e["住所"] == entry["住所"] for e in st.session_state.comparison_list)
             if not already:
