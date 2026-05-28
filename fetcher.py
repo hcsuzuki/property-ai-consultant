@@ -42,9 +42,11 @@ class PropertyDataFetcher:
     FRED_BASE      = "https://api.stlouisfed.org/fred"
     FEMA_FLOOD_URL = "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28/query"
     CENSUS_BASE    = "https://api.census.gov/data"
+    CENSUS_GEOCODER = "https://geocoding.geo.census.gov/geocoder/geographies/address"
     BLS_URL        = "https://api.bls.gov/publicAPI/v1/timeseries/data"
     HUD_BASE       = "https://www.huduser.gov/hudapi/public"
     WALKSCORE_URL  = "https://api.walkscore.com/score"
+    FBI_BASE       = "https://api.usa.gov/crime/fbi/sapi"
 
     def __init__(self):
         self.rapidapi_key  = os.getenv("RAPIDAPI_KEY", "")
@@ -53,6 +55,7 @@ class PropertyDataFetcher:
         self.census_key    = os.getenv("CENSUS_API_KEY", "")
         self.hud_token     = os.getenv("HUD_API_TOKEN", "")
         self.walkscore_key = os.getenv("WALKSCORE_API_KEY", "")
+        self.fbi_key       = os.getenv("FBI_API_KEY", "")
 
     # ──────────────────────────────────────────────────────────────────────────
     # Zillow
@@ -157,14 +160,15 @@ class PropertyDataFetcher:
     # ──────────────────────────────────────────────────────────────────────────
 
     def get_crime_data(self, lat: float, lng: float, city: str = "", state: str = "") -> dict:
-        """犯罪データを取得（現在はシカゴのみ対応）"""
+        """犯罪データを取得（Chicago詳細 / FBI全米対応）"""
+        # シカゴは独自のData Portalで半径ベースの詳細データを優先
         if "CHICAGO" in city.upper() or ("IL" in state.upper() and 41.6 < lat < 42.1):
-            return self._get_chicago_crime(lat, lng)
-        if city:
-            return {
-                "error":        f"犯罪データは現在シカゴのみ対応（{city}は未対応）",
-                "safety_score": None,
-            }
+            result = self._get_chicago_crime(lat, lng)
+            if not result.get("error"):
+                return result
+        # FBIデータで全米対応（TX・IL他すべての都市）
+        if city and state:
+            return self.get_fbi_crime_data(city, state)
         return {"error": "犯罪データ未対応エリア", "safety_score": None}
 
     def _get_chicago_crime(self, lat: float, lng: float, radius_m: int = 800) -> dict:
@@ -208,6 +212,91 @@ class PropertyDataFetcher:
         except Exception:
             pass
         return {"error": "シカゴ犯罪データ取得失敗", "safety_score": None}
+
+    def get_fbi_crime_data(self, city: str, state: str) -> dict:
+        """FBI Crime Data Explorer API から市区レベルの犯罪データを取得（全米対応）"""
+        if not self.fbi_key:
+            return {"error": "FBI_API_KEY 未設定（api.usa.gov/crime/fbi/sapi/ で無料登録）", "safety_score": None}
+        # Step 1: 州の警察機関一覧を取得してcityに一致する機関を探す
+        try:
+            resp = requests.get(
+                f"{self.FBI_BASE}/api/agencies/byStateAbbr/{state.upper()}",
+                params={"api_key": self.fbi_key},
+                timeout=15,
+            )
+            agencies = resp.json()
+            if not isinstance(agencies, list):
+                return {"error": "FBI機関データ取得失敗", "safety_score": None}
+
+            city_clean = city.lower().strip()
+            matched = None
+            # 完全一致（市警察優先）
+            for a in agencies:
+                if (a.get("city_name", "").lower().strip() == city_clean
+                        and "police" in a.get("agency_type_name", "").lower()):
+                    matched = a
+                    break
+            # 部分一致フォールバック
+            if not matched:
+                for a in agencies:
+                    a_city = a.get("city_name", "").lower().strip()
+                    if city_clean in a_city or a_city in city_clean:
+                        matched = a
+                        break
+            if not matched:
+                return {"error": f"{city}, {state} の犯罪データなし（小規模都市の可能性）", "safety_score": None}
+
+            ori        = matched.get("ori", "")
+            pop_agency = matched.get("population", 0) or 50000
+            agency_nm  = matched.get("agency_name", city)
+        except Exception as e:
+            return {"error": f"FBI機関検索失敗: {str(e)}", "safety_score": None}
+
+        # Step 2: 犯罪統計取得（FBIデータは1〜2年遅れ）
+        year = datetime.datetime.now().year - 2
+        try:
+            resp = requests.get(
+                f"{self.FBI_BASE}/api/summarized/agencies/{ori}/offenses/{year}/{year}",
+                params={"api_key": self.fbi_key},
+                timeout=15,
+            )
+            items = resp.json()
+            if not isinstance(items, list):
+                return {"error": "FBI犯罪統計の取得失敗", "safety_score": None}
+
+            VIOLENT  = {"murder", "rape", "robbery", "aggravated-assault"}
+            PROPERTY = {"burglary", "larceny", "motor-vehicle-theft", "arson"}
+
+            total_v = total_p = 0
+            crime_counts: dict = {}
+            for item in items:
+                offense = item.get("offense", "")
+                count   = int(item.get("actual", 0) or 0)
+                crime_counts[offense] = crime_counts.get(offense, 0) + count
+                if offense in VIOLENT:  total_v += count
+                if offense in PROPERTY: total_p += count
+
+            total  = total_v + total_p
+            rate   = total / pop_agency * 1000 if pop_agency > 0 else 0
+            safety = (90 if rate < 20 else 75 if rate < 40 else 55 if rate < 60
+                      else 40 if rate < 80 else 25 if rate < 100 else 10)
+            top5   = sorted(crime_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+
+            return {
+                "source":               "FBI Crime Data Explorer",
+                "agency_name":          agency_nm,
+                "year":                 year,
+                "total_incidents":      total,
+                "total_violent":        total_v,
+                "total_property":       total_p,
+                "crime_rate_per_1000":  round(rate, 1),
+                "population":           pop_agency,
+                "top_crime_types":      [{"type": t, "count": c} for t, c in top5],
+                "safety_score":         safety,
+                "safety_label":         "安全" if safety >= 70 else "普通" if safety >= 40 else "要注意",
+            }
+        except Exception as e:
+            return {"error": f"FBI犯罪統計取得失敗: {str(e)}", "safety_score": None}
 
     # ──────────────────────────────────────────────────────────────────────────
     # Walk Score API

@@ -837,7 +837,7 @@ def show_results(
         place_card(lb, "🛒 スーパー/食料品", loc.get("supermarkets", []))
         place_card(lc, "🏪 ショッピング",    loc.get("shopping", []))
 
-        # 犯罪データ
+        # 犯罪データ（Chicago Data Portal / FBI Crime Data Explorer）
         crime = loc.get("crime", {})
         if crime and not crime.get("error"):
             safety_score    = crime.get("safety_score", 0)
@@ -845,7 +845,8 @@ def show_results(
             total_incidents = crime.get("total_incidents", 0)
             year            = crime.get("year", "")
             top_crimes      = crime.get("top_crime_types", [])
-            radius_m        = crime.get("radius_meters", 800)
+            source          = crime.get("source", "")
+            is_fbi          = "FBI" in source
 
             if safety_score >= 70:
                 c_color, c_bg, c_icon = "#2e7d32", "#e8f5e9", "✅"
@@ -856,6 +857,21 @@ def show_results(
 
             crimes_str = (" / ".join(f"{c['type']}({c['count']}件)" for c in top_crimes[:4])
                           if top_crimes else "データなし")
+
+            if is_fbi:
+                rate       = crime.get("crime_rate_per_1000", 0)
+                total_v    = crime.get("total_violent", 0)
+                total_p    = crime.get("total_property", 0)
+                population = crime.get("population", 0)
+                agency_nm  = crime.get("agency_name", "")
+                detail_str = (f"暴力犯罪: {total_v:,}件 ／ 財産犯罪: {total_p:,}件 ／ "
+                              f"犯罪率: {rate:.1f}件/千人 ／ 対象人口: {population:,}人")
+                src_str    = f"{year}年 {agency_nm}（出典: FBI Crime Data Explorer）"
+            else:
+                radius_m   = crime.get("radius_meters", 800)
+                detail_str = f"{year}年 半径{radius_m}m以内"
+                src_str    = f"総件数: <strong>{total_incidents}件</strong>（出典: Chicago Data Portal）"
+
             st.markdown(f"""
             <div style="background:{c_bg};border-left:4px solid {c_color};border-radius:8px;
                         padding:1rem 1.2rem;margin-top:1rem">
@@ -863,15 +879,17 @@ def show_results(
                     {c_icon} 安全スコア: {safety_score}/100 ― {safety_label}
                 </div>
                 <div style="color:#555;font-size:.88rem;margin-top:.4rem">
-                    {year}年 半径{radius_m}m以内の犯罪件数:
-                    <strong>{total_incidents}件</strong>（出典: Chicago Data Portal）
+                    {src_str}
+                </div>
+                <div style="color:#555;font-size:.85rem;margin-top:.3rem">
+                    {detail_str}
                 </div>
                 <div style="color:#555;font-size:.85rem;margin-top:.3rem">
                     主な犯罪タイプ: {crimes_str}
                 </div>
             </div>
             """, unsafe_allow_html=True)
-        elif crime.get("error") and "未対応" not in crime.get("error", ""):
+        elif crime.get("error") and "未対応" not in crime.get("error", "") and "未設定" not in crime.get("error", ""):
             st.info(f"⚠️ 犯罪データ: {crime['error']}")
 
         road = loc.get("road_info", {})
