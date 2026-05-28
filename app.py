@@ -754,6 +754,88 @@ def show_results(
         html += "</div>"
         st.markdown(html, unsafe_allow_html=True)
 
+    # ── Multi-source price comparison ─────────────────────────────────────────
+    redfin_d  = loc.get("redfin",  {}) if not loc.get("error") else {}
+    realtor_d = loc.get("realtor", {}) if not loc.get("error") else {}
+    has_redfin  = redfin_d  and not redfin_d.get("error")
+    has_realtor = realtor_d and not realtor_d.get("error")
+    if has_redfin or has_realtor or prop.get("zestimate"):
+        st.markdown('<div class="section-title">🏷️ 価格比較（複数データソース）</div>', unsafe_allow_html=True)
+        st.caption("Zillow・Redfin・Realtor.com の推定価格と購入価格を比較します")
+
+        sources = []
+        # 購入価格（入力値）は常に表示
+        sources.append({
+            "label": "購入価格\n（入力値）",
+            "price": fin["purchase_price"],
+            "dom": None,
+            "ppsf": None,
+            "status": "入力値",
+            "color": "#1a237e",
+        })
+        # Zillow Zestimate
+        zest = prop.get("zestimate")
+        if zest:
+            sources.append({
+                "label": "Zillow\nZestimate",
+                "price": zest,
+                "dom": None,
+                "ppsf": None,
+                "status": "推定価格",
+                "color": "#006aff",
+            })
+        # Redfin
+        if has_redfin:
+            rf_price = redfin_d.get("list_price") or redfin_d.get("estimate")
+            sources.append({
+                "label": "Redfin",
+                "price": rf_price,
+                "dom":   redfin_d.get("days_on_market"),
+                "ppsf":  redfin_d.get("price_per_sqft"),
+                "status": redfin_d.get("status", ""),
+                "color": "#d63f32",
+            })
+        # Realtor.com
+        if has_realtor:
+            rl_price = realtor_d.get("list_price") or realtor_d.get("estimate")
+            sources.append({
+                "label": "Realtor.com",
+                "price": rl_price,
+                "dom":   realtor_d.get("days_on_market"),
+                "ppsf":  realtor_d.get("price_per_sqft"),
+                "status": realtor_d.get("status", ""),
+                "color": "#c0392b",
+            })
+
+        cols = st.columns(len(sources))
+        for i, src in enumerate(sources):
+            with cols[i]:
+                lbl    = src["label"].replace("\n", "<br>")
+                price  = src["price"]
+                is_ref = (i == 0)  # 購入価格が基準
+                html   = f'<div class="card" style="text-align:center">'
+                html  += f'<div style="font-size:.82rem;font-weight:600;color:#555;margin-bottom:.4rem">{lbl}</div>'
+                if price:
+                    if is_ref:
+                        html += f'<div style="font-size:1.4rem;font-weight:700;color:{src["color"]}">${price:,.0f}</div>'
+                    else:
+                        diff     = price - fin["purchase_price"]
+                        diff_pct = diff / fin["purchase_price"] * 100
+                        d_color  = "#2e7d32" if diff > 0 else "#b71c1c" if diff < 0 else "#555"
+                        d_arrow  = "▲" if diff > 0 else "▼" if diff < 0 else "＝"
+                        html += f'<div style="font-size:1.4rem;font-weight:700;color:{src["color"]}">${price:,.0f}</div>'
+                        html += f'<div style="font-size:.8rem;color:{d_color};margin-top:.2rem">{d_arrow} {diff:+,.0f} ({diff_pct:+.1f}%)</div>'
+                else:
+                    html += '<div style="color:#aaa;font-size:.9rem;margin-top:.4rem">データなし</div>'
+                if src["dom"] is not None:
+                    html += f'<div style="font-size:.78rem;color:#777;margin-top:.4rem">📅 市場掲載 {src["dom"]}日</div>'
+                if src["ppsf"]:
+                    html += f'<div style="font-size:.78rem;color:#777">📐 ${src["ppsf"]:,.0f}/sqft</div>'
+                if src["status"] and not is_ref:
+                    html += f'<div style="font-size:.75rem;color:#aaa;margin-top:.2rem">{src["status"]}</div>'
+                html += '</div>'
+                st.markdown(html, unsafe_allow_html=True)
+
     # ── Location ──────────────────────────────────────────────────────────────
     st.markdown('<div class="section-title">📍 周辺環境・安全性</div>', unsafe_allow_html=True)
 
@@ -1266,7 +1348,7 @@ def main():
         prop_data = fetcher.get_property_data(address)
         progress.progress(25)
 
-        status.markdown("📍 **Google Maps・各種APIで周辺環境を分析中…**")
+        status.markdown("📍 **Google Maps・Redfin・Realtor.com・各種APIで周辺環境を分析中…**")
         loc_data = fetcher.get_all_location_data(address)
         progress.progress(55)
 

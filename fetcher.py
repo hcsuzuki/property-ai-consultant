@@ -74,26 +74,28 @@ class PropertyDataFetcher:
         return details
 
     def _search_zpid(self, address: str) -> Optional[str]:
-        """住所から zpid を取得"""
-        url = f"https://{self.ZILLOW_HOST}/v1/search/sale"
+        """住所から zpid を取得（売出し中・最近売却・賃貸・全般を順番に試す）"""
         headers = {
             "X-RapidAPI-Key":  self.rapidapi_key,
             "X-RapidAPI-Host": self.ZILLOW_HOST,
         }
-        try:
-            resp = requests.get(
-                url,
-                headers=headers,
-                params={"location": address, "limit": "1"},
-                timeout=15,
-            )
-            data = resp.json()
-            results = data.get("results", data.get("props", []))
-            if results:
-                item = results[0]
-                return str(item.get("zpid", item.get("id", "")))
-        except Exception:
-            pass
+        endpoints = [
+            (f"https://{self.ZILLOW_HOST}/v1/search/sale",           {"location": address, "limit": "1"}),
+            (f"https://{self.ZILLOW_HOST}/v1/search/recently_sold",  {"location": address, "limit": "1"}),
+            (f"https://{self.ZILLOW_HOST}/v1/search/rent",           {"location": address, "limit": "1"}),
+        ]
+        for url, params in endpoints:
+            try:
+                resp = requests.get(url, headers=headers, params=params, timeout=12)
+                data = resp.json()
+                results = data.get("results", data.get("props", []))
+                if results:
+                    item = results[0]
+                    zpid = str(item.get("zpid", item.get("id", "")))
+                    if zpid and zpid != "None":
+                        return zpid
+            except Exception:
+                pass
         return None
 
     def _get_property_details(self, zpid: str) -> dict:
@@ -153,6 +155,8 @@ class PropertyDataFetcher:
             "population_growth": self.get_county_population_growth(address, state) if state else {"error": "州不明"},
             "unemployment":      self.get_bls_unemployment(state) if state else {"error": "州不明"},
             "hud_fmr":           self.get_hud_fair_market_rent(state, city) if state else {"error": "州不明"},
+            "redfin":            self.get_redfin_market_data(address),
+            "realtor":           self.get_realtor_market_data(address),
         }
 
     # ──────────────────────────────────────────────────────────────────────────
@@ -470,6 +474,75 @@ class PropertyDataFetcher:
             except Exception:
                 pass
         return results if results else {"error": "FRED データ取得失敗"}
+
+    def get_redfin_market_data(self, address: str) -> dict:
+        """Redfin API（RapidAPI）から市場データを取得"""
+        if not self.rapidapi_key:
+            return {"error": "RAPIDAPI_KEY 未設定"}
+        REDFIN_HOST = "redfin-com-data.p.rapidapi.com"
+        headers = {"X-RapidAPI-Key": self.rapidapi_key, "X-RapidAPI-Host": REDFIN_HOST}
+        try:
+            # Step1: 住所で物件検索
+            resp = requests.get(
+                f"https://{REDFIN_HOST}/v1/search",
+                headers=headers, params={"location": address, "limit": "1"}, timeout=12,
+            )
+            results = resp.json().get("data", resp.json().get("results", []))
+            if not results:
+                return {"error": "Redfin: 物件が見つかりませんでした"}
+            prop = results[0] if isinstance(results, list) else results
+            return {
+                "source":          "Redfin",
+                "list_price":      prop.get("price", prop.get("listPrice")),
+                "price_per_sqft":  prop.get("pricePerSqFt", prop.get("price_per_sqft")),
+                "days_on_market":  prop.get("daysOnMarket", prop.get("dom")),
+                "estimate":        prop.get("estimate", prop.get("avm")),
+                "beds":            prop.get("beds"),
+                "baths":           prop.get("baths"),
+                "sqft":            prop.get("sqFt", prop.get("sqft")),
+                "year_built":      prop.get("yearBuilt"),
+                "status":          prop.get("status", prop.get("listingStatus")),
+                "url":             prop.get("url", ""),
+            }
+        except Exception as e:
+            return {"error": f"Redfin取得失敗: {str(e)}"}
+
+    def get_realtor_market_data(self, address: str) -> dict:
+        """Realtor.com API（RapidAPI）から市場データを取得"""
+        if not self.rapidapi_key:
+            return {"error": "RAPIDAPI_KEY 未設定"}
+        REALTOR_HOST = "realtor-search.p.rapidapi.com"
+        headers = {"X-RapidAPI-Key": self.rapidapi_key, "X-RapidAPI-Host": REALTOR_HOST}
+        try:
+            resp = requests.get(
+                f"https://{REALTOR_HOST}/properties/list",
+                headers=headers,
+                params={"location": address, "limit": "1", "offset": "0"},
+                timeout=12,
+            )
+            data = resp.json()
+            props = data.get("data", {}).get("home_search", {}).get("results", [])
+            if not props:
+                props = data.get("results", data.get("properties", []))
+            if not props:
+                return {"error": "Realtor.com: 物件が見つかりませんでした"}
+            p = props[0] if isinstance(props, list) else props
+            desc = p.get("description", p)
+            return {
+                "source":         "Realtor.com",
+                "list_price":     desc.get("list_price", p.get("listPrice")),
+                "price_per_sqft": desc.get("price_per_sqft"),
+                "days_on_market": desc.get("days_on_market", p.get("daysOnMarket")),
+                "sqft":           desc.get("sqft", desc.get("sqFt")),
+                "beds":           desc.get("beds"),
+                "baths":          desc.get("baths"),
+                "year_built":     desc.get("year_built"),
+                "status":         desc.get("status", p.get("status")),
+                "estimate":       p.get("estimate", {}).get("estimate") if isinstance(p.get("estimate"), dict) else p.get("estimate"),
+                "url":            p.get("href", p.get("url", "")),
+            }
+        except Exception as e:
+            return {"error": f"Realtor.com取得失敗: {str(e)}"}
 
     def get_market_data(self) -> dict:
         """市場データ（モーゲージ金利など）を取得"""

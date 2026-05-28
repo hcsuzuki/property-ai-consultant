@@ -87,6 +87,11 @@ class PropertyAnalyzer:
 - 財務スコア（40点）: キャップレート(10点)、CoC・CF(10点)、価格妥当性・GRM(10点)、賃料/価格比(10点)
 - 物件スコア（20点）: 築年数・状態(8点)、広さ・間取り(7点)、物件タイプ(5点)
 - 市場スコア（10点）: エリア成長性(5点)、賃貸需要・流動性(5点)
+
+【重要な分析指針】
+1. 郡・エリア成長性の評価: 市単体の人口規模ではなく、郡レベルの人口増加率を重視してください。郊外の新興住宅地（例: テキサス北部の急成長郡内の小都市）は、市の絶対人口は小さくても郡全体の成長需要を受益します。郡の2年間成長率が+3%以上なら「成長エリア」として評価してください。
+2. 運営経費率の評価: 入力された経費率（例: 40%）は業界の標準的な「50%ルール」から導かれた保守的な見積もりです。単家族住宅の実績値は通常35〜45%の範囲であり、40%は妥当な前提です。根拠が不明確とは評価しないでください。
+3. 複数ソース価格比較: Zillow・Redfin・Realtor.comの価格情報が提供されている場合は、それらを比較して購入価格の妥当性を多角的に評価してください。
 """
 
     def _fmt_property(self, prop: dict) -> str:
@@ -257,6 +262,30 @@ class PropertyAnalyzer:
         hud = loc.get("hud_fmr", {})
         if hud and not hud.get("error"):
             lines.append(f"- HUD公正市場賃料 ({hud.get('area_name', '')}): 1BR=${hud.get('1br', 0):,} / 2BR=${hud.get('2br', 0):,} / 3BR=${hud.get('3br', 0):,}")
+
+        # Redfin価格情報
+        redfin = loc.get("redfin", {})
+        if redfin and not redfin.get("error"):
+            lp   = redfin.get("list_price")
+            est  = redfin.get("estimate")
+            dom  = redfin.get("days_on_market")
+            ppsf = redfin.get("price_per_sqft")
+            price_str = (f"${lp:,}" if lp else (f"推定${est:,}" if est else "N/A"))
+            dom_str   = f"{dom}日" if dom is not None else "N/A"
+            ppsf_str  = f"${ppsf:,}/sqft" if ppsf else "N/A"
+            lines.append(f"- Redfin価格情報: {price_str} / $/sqft: {ppsf_str} / 市場掲載日数: {dom_str} / ステータス: {redfin.get('status','N/A')}")
+
+        # Realtor.com価格情報
+        realtor = loc.get("realtor", {})
+        if realtor and not realtor.get("error"):
+            lp   = realtor.get("list_price")
+            est  = realtor.get("estimate")
+            dom  = realtor.get("days_on_market")
+            ppsf = realtor.get("price_per_sqft")
+            price_str = (f"${lp:,}" if lp else (f"推定${est:,}" if est else "N/A"))
+            dom_str   = f"{dom}日" if dom is not None else "N/A"
+            ppsf_str  = f"${ppsf:,}/sqft" if ppsf else "N/A"
+            lines.append(f"- Realtor.com価格情報: {price_str} / $/sqft: {ppsf_str} / 市場掲載日数: {dom_str} / ステータス: {realtor.get('status','N/A')}")
 
         return "\n".join(lines)
 
