@@ -231,7 +231,26 @@ class PropertyAnalyzer:
         lines.append(fmt_places("スーパー/食料品店", loc.get("supermarkets", [])))
         lines.append(fmt_places("ショッピング", loc.get("shopping", [])))
         lines.append(fmt_places("レストラン", loc.get("restaurants", [])))
-        lines.append(fmt_places("交通機関", loc.get("transit", [])))
+        lines.append(fmt_places("交通機関（Google Maps）", loc.get("transit", [])))
+
+        # SchoolDigger 学校評価
+        sd_schools = loc.get("school_ratings", [])
+        if sd_schools:
+            lines.append("\n【SchoolDigger 学校評価・ランキング】")
+            for s in sd_schools[:4]:
+                stars_str = f"{s['rating']:.1f}/5" if s.get("rating") is not None else "評価なし"
+                rank_str  = f"州内{s['rank']:,}位/{s['rank_of']:,}校" if s.get("rank") and s.get("rank_of") else ""
+                lines.append(f"  - {s['name']}（{s.get('grades','')}）: ⭐{stars_str} {rank_str}")
+
+        # 交通機関詳細（OpenStreetMap）
+        transit_det = loc.get("transit_detailed", {})
+        if transit_det and not transit_det.get("error"):
+            if transit_det.get("car_dependent"):
+                lines.append(f"- 交通機関（OpenStreetMap）: 半径{transit_det.get('radius_miles',1.9)}マイル以内に公共交通機関なし → 完全自動車依存エリア")
+            else:
+                stops = transit_det.get("stops", [])
+                stop_str = ", ".join(f"{s['type']}{s['name']}({s['distance_miles']}マイル)" for s in stops[:3])
+                lines.append(f"- 交通機関（OpenStreetMap）: {stop_str}")
 
         road = loc.get("road_info", {})
         if road.get("road_name"):

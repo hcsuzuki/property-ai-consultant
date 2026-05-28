@@ -47,15 +47,19 @@ class PropertyDataFetcher:
     HUD_BASE       = "https://www.huduser.gov/hudapi/public"
     WALKSCORE_URL  = "https://api.walkscore.com/score"
     FBI_BASE       = "https://api.usa.gov/crime/fbi/sapi"
+    SCHOOLDIGGER_BASE = "https://api.schooldigger.com/v2.0"
+    OVERPASS_URL   = "https://overpass-api.de/api/interpreter"
 
     def __init__(self):
-        self.rapidapi_key  = os.getenv("RAPIDAPI_KEY", "")
-        self.google_key    = os.getenv("GOOGLE_MAPS_API_KEY", "")
-        self.fred_key      = os.getenv("FRED_API_KEY", "")
-        self.census_key    = os.getenv("CENSUS_API_KEY", "")
-        self.hud_token     = os.getenv("HUD_API_TOKEN", "")
-        self.walkscore_key = os.getenv("WALKSCORE_API_KEY", "")
-        self.fbi_key       = os.getenv("FBI_API_KEY", "")
+        self.rapidapi_key       = os.getenv("RAPIDAPI_KEY", "")
+        self.google_key         = os.getenv("GOOGLE_MAPS_API_KEY", "")
+        self.fred_key           = os.getenv("FRED_API_KEY", "")
+        self.census_key         = os.getenv("CENSUS_API_KEY", "")
+        self.hud_token          = os.getenv("HUD_API_TOKEN", "")
+        self.walkscore_key      = os.getenv("WALKSCORE_API_KEY", "")
+        self.fbi_key            = os.getenv("FBI_API_KEY", "")
+        self.schooldigger_id    = os.getenv("SCHOOLDIGGER_APP_ID", "")
+        self.schooldigger_key   = os.getenv("SCHOOLDIGGER_APP_KEY", "")
 
     # ──────────────────────────────────────────────────────────────────────────
     # Zillow
@@ -158,6 +162,8 @@ class PropertyDataFetcher:
             "redfin":            self.get_redfin_market_data(address),
             "realtor":           self.get_realtor_market_data(address),
             "ccad":              self.get_collin_cad_data(address, city) if state == "TX" else {},
+            "school_ratings":    self.get_schooldigger_schools(lat, lng, state),
+            "transit_detailed":  self.get_transit_detailed(lat, lng),
         }
 
     # ──────────────────────────────────────────────────────────────────────────
@@ -544,6 +550,111 @@ class PropertyDataFetcher:
             }
         except Exception as e:
             return {"error": f"Realtor.com取得失敗: {str(e)}"}
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # SchoolDigger API — school ratings & rankings (free DEV/TEST plan)
+    # ──────────────────────────────────────────────────────────────────────────
+
+    def get_schooldigger_schools(self, lat: float, lng: float, state: str) -> list:
+        """SchoolDigger API から近隣学校の評価・ランキングを取得
+        無料DEV/TESTプラン: developer.schooldigger.com で登録（クレジットカード不要）
+        ※ nearLatitude/Longitude はPro以上。DEV/TESTは州+郵便番号クエリを使用。
+        """
+        if not self.schooldigger_id or not self.schooldigger_key:
+            return []
+        try:
+            resp = requests.get(
+                f"{self.SCHOOLDIGGER_BASE}/schools",
+                params={
+                    "nearLatitude":  lat,
+                    "nearLongitude": lng,
+                    "state":         state,
+                    "perPage":       5,
+                    "appID":         self.schooldigger_id,
+                    "appKey":        self.schooldigger_key,
+                },
+                timeout=12,
+            )
+            data = resp.json()
+            schools = data.get("schoolList", [])
+            result = []
+            for s in schools:
+                rank_hist = s.get("rankHistory", [])
+                rank_info = rank_hist[0] if rank_hist else {}
+                result.append({
+                    "name":            s.get("schoolName", ""),
+                    "rating":          s.get("schoolDiggerRating"),   # 0〜5 stars
+                    "stars":           s.get("schoolDiggerStars", ""),
+                    "rank":            rank_info.get("rank"),
+                    "rank_of":         rank_info.get("rankOf"),
+                    "grades":          s.get("gradeRange", ""),
+                    "city":            (s.get("address") or {}).get("city", ""),
+                    "student_count":   s.get("studentCount"),
+                    "source":          "SchoolDigger",
+                })
+            return result
+        except Exception:
+            return []
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # OpenStreetMap Overpass API — public transit stops (free, no key)
+    # ──────────────────────────────────────────────────────────────────────────
+
+    def get_transit_detailed(self, lat: float, lng: float, radius_m: int = 3000) -> dict:
+        """OpenStreetMap Overpass API から公共交通機関停留所データを取得
+        完全無料・APIキー不要。バス停・鉄道駅・地下鉄等を取得。
+        """
+        query = (
+            f"[out:json][timeout:12];"
+            f"("
+            f'node["public_transport"="stop_position"](around:{radius_m},{lat},{lng});'
+            f'node["highway"="bus_stop"](around:{radius_m},{lat},{lng});'
+            f'node["railway"="station"](around:{radius_m},{lat},{lng});'
+            f'node["railway"="halt"](around:{radius_m},{lat},{lng});'
+            f'node["amenity"="bus_station"](around:{radius_m},{lat},{lng});'
+            f'node["station"="subway"](around:{radius_m},{lat},{lng});'
+            f");"
+            f"out body;"
+        )
+        try:
+            resp = requests.post(
+                self.OVERPASS_URL,
+                data={"data": query},
+                timeout=18,
+            )
+            elements = resp.json().get("elements", [])
+            stops, seen = [], set()
+            for el in elements:
+                tags    = el.get("tags", {})
+                name    = tags.get("name", tags.get("ref", ""))
+                if not name or name in seen:
+                    continue
+                seen.add(name)
+                slat    = el.get("lat", lat)
+                slng    = el.get("lon", lng)
+                dist_km = self._haversine(lat, lng, slat, slng)
+                s_type  = (
+                    "🚆 鉄道駅" if tags.get("railway") in ("station", "halt")
+                    else "🚇 地下鉄" if tags.get("station") == "subway"
+                    else "🚌 バス停"
+                )
+                stops.append({
+                    "name":           name,
+                    "type":           s_type,
+                    "distance_miles": round(dist_km * 0.621371, 2),
+                    "operator":       tags.get("operator", ""),
+                })
+            stops.sort(key=lambda x: x["distance_miles"])
+            car_dependent = len(stops) == 0
+            return {
+                "stops":         stops[:8],
+                "total_found":   len(stops),
+                "radius_miles":  round(radius_m / 1609.34, 1),
+                "car_dependent": car_dependent,
+                "source":        "OpenStreetMap / Overpass API",
+            }
+        except Exception as e:
+            return {"error": f"交通データ取得失敗: {str(e)}", "car_dependent": None}
 
     def get_fred_rental_vacancy(self, state: str = "") -> dict:
         """FRED API からテキサス州・全米の賃貸空室率を取得"""

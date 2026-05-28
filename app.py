@@ -969,6 +969,54 @@ def show_results(
         place_card(lb, "🛒 スーパー/食料品", loc.get("supermarkets", []))
         place_card(lc, "🏪 ショッピング",    loc.get("shopping", []))
 
+        # SchoolDigger 学校評価（詳細）
+        sd_schools = loc.get("school_ratings", [])
+        if sd_schools:
+            h = '<div class="card"><h4>🏆 学校評価（SchoolDigger）</h4>'
+            for s in sd_schools[:4]:
+                stars = s.get("rating")
+                if stars is not None:
+                    filled = int(round(stars))
+                    star_str = "★" * filled + "☆" * (5 - filled) + f" {stars:.1f}/5"
+                    s_color = "#2e7d32" if stars >= 3.5 else "#e65100" if stars >= 2.5 else "#b71c1c"
+                else:
+                    star_str = "評価なし"
+                    s_color = "#aaa"
+                rank_str = ""
+                if s.get("rank") and s.get("rank_of"):
+                    rank_str = f" ／ 州内{s['rank']:,}位/{s['rank_of']:,}校"
+                h += (f'<div class="row"><span class="row-label">{s["name"]}'
+                      f'<span style="font-size:.75rem;color:#888"> {s.get("grades","")}</span></span>'
+                      f'<span class="row-value" style="color:{s_color}">{star_str}{rank_str}</span></div>')
+            h += '<div style="font-size:.75rem;color:#aaa;margin-top:.4rem">出典: SchoolDigger.com</div></div>'
+            la.markdown(h, unsafe_allow_html=True)
+
+        # 詳細交通機関情報（OpenStreetMap Overpass）
+        transit_det = loc.get("transit_detailed", {})
+        if transit_det and not transit_det.get("error"):
+            td_stops = transit_det.get("stops", [])
+            car_dep  = transit_det.get("car_dependent", True)
+            if car_dep:
+                st.markdown("""
+                <div style="background:#fff3e0;border-left:4px solid #e65100;border-radius:8px;
+                            padding:.9rem 1.2rem;margin-top:.8rem">
+                    <span style="font-weight:700;color:#e65100">🚗 自動車依存エリア</span>
+                    <span style="font-size:.88rem;color:#555;margin-left:.6rem">
+                        半径3マイル以内に公共交通機関の停留所なし（バス・鉄道・地下鉄）。
+                        車なしでの生活は困難です。入居者層は自動車保有世帯が前提。
+                    </span>
+                    <span style="font-size:.75rem;color:#aaa;margin-left:.4rem">出典: OpenStreetMap</span>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                h = '<div class="card"><h4>🚌 交通機関（OpenStreetMap）</h4>'
+                for stop in td_stops[:5]:
+                    h += (f'<div class="row"><span class="row-label">{stop["type"]} {stop["name"]}'
+                          f'<span style="font-size:.78rem;color:#888"> {stop.get("operator","")}</span></span>'
+                          f'<span class="row-value">{stop["distance_miles"]}マイル</span></div>')
+                h += f'<div style="font-size:.75rem;color:#aaa;margin-top:.4rem">出典: OpenStreetMap / 半径{transit_det.get("radius_miles",1.9)}マイル</div></div>'
+                lc.markdown(h, unsafe_allow_html=True)
+
         # 犯罪データ（Chicago Data Portal / FBI Crime Data Explorer）
         crime = loc.get("crime", {})
         if crime and not crime.get("error"):
@@ -1021,8 +1069,42 @@ def show_results(
                 </div>
             </div>
             """, unsafe_allow_html=True)
-        elif crime.get("error") and "未対応" not in crime.get("error", "") and "未設定" not in crime.get("error", ""):
-            st.info(f"⚠️ 犯罪データ: {crime['error']}")
+        elif not crime or crime.get("error"):
+            # 犯罪データなし → 人口統計ベースの安全性推定
+            demo       = loc.get("demographics", {})
+            pop_growth = loc.get("population_growth", {})
+            if demo and not demo.get("error") and demo.get("median_income", 0) > 0:
+                income      = demo.get("median_income", 0)
+                vac_rate    = demo.get("vacancy_rate", 0)
+                renter_pct  = demo.get("renter_pct", 0)
+                # 推定安全スコア（全米中央所得$75k基準）
+                est_safety = min(90, max(30,
+                    50
+                    + min(30, (income - 50000) / 2000)   # 高所得ほど高スコア
+                    - min(15, vac_rate * 1.5)             # 高空室ほど低スコア
+                ))
+                est_label = "安全（推定）" if est_safety >= 70 else "普通（推定）" if est_safety >= 50 else "要確認（推定）"
+                est_color = "#2e7d32" if est_safety >= 70 else "#e65100"
+                county = pop_growth.get("county_name", "") if pop_growth and not pop_growth.get("error") else ""
+                st.markdown(f"""
+                <div style="background:#f3e5f5;border-left:4px solid #7b1fa2;border-radius:8px;
+                            padding:1rem 1.2rem;margin-top:1rem">
+                    <div style="font-weight:700;color:#7b1fa2;font-size:1rem">
+                        📊 安全性 推定スコア: {int(est_safety)}/100 ― {est_label}
+                    </div>
+                    <div style="color:#555;font-size:.88rem;margin-top:.4rem">
+                        ※ このエリアの直接犯罪データは未取得。世帯中央所得
+                        <strong>${income:,}/年</strong>・空室率<strong>{vac_rate:.1f}%</strong>
+                        から推定。{f'<strong>{county}</strong>は高所得・急成長郡。' if county else ''}
+                    </div>
+                    <div style="color:#888;font-size:.8rem;margin-top:.3rem">
+                        正確な犯罪データには FBI_API_KEY の設定が必要です
+                        （<a href="https://api.usa.gov/crime/fbi/sapi/" target="_blank">api.usa.gov/crime/fbi/sapi</a> で無料登録）
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            elif crime.get("error") and "未対応" not in crime.get("error", "") and "未設定" not in crime.get("error", ""):
+                st.info(f"⚠️ 犯罪データ: {crime['error']}")
 
         road = loc.get("road_info", {})
         if road.get("road_name") and road["road_name"] != "不明":
