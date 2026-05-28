@@ -157,6 +157,7 @@ class PropertyDataFetcher:
             "hud_fmr":           self.get_hud_fair_market_rent(state, city) if state else {"error": "州不明"},
             "redfin":            self.get_redfin_market_data(address),
             "realtor":           self.get_realtor_market_data(address),
+            "ccad":              self.get_collin_cad_data(address, city) if state == "TX" else {},
         }
 
     # ──────────────────────────────────────────────────────────────────────────
@@ -544,9 +545,112 @@ class PropertyDataFetcher:
         except Exception as e:
             return {"error": f"Realtor.com取得失敗: {str(e)}"}
 
-    def get_market_data(self) -> dict:
-        """市場データ（モーゲージ金利など）を取得"""
-        return {"mortgage_rates": self.get_fred_mortgage_rates()}
+    def get_fred_rental_vacancy(self, state: str = "") -> dict:
+        """FRED API からテキサス州・全米の賃貸空室率を取得"""
+        if not self.fred_key:
+            return {"error": "FRED_API_KEY 未設定"}
+        # 州別シリーズID（FREDに存在するもの）
+        STATE_SERIES = {
+            "TX": ("TXRVAC",  "テキサス州賃貸空室率"),
+            "CA": ("CARVAC",  "カリフォルニア州賃貸空室率"),
+            "FL": ("FLRVAC",  "フロリダ州賃貸空室率"),
+            "NY": ("NYRVAC",  "ニューヨーク州賃貸空室率"),
+            "IL": ("ILRVAC",  "イリノイ州賃貸空室率"),
+        }
+        series_list = [("RRVRUSQ156N", "全米賃貸空室率")]
+        if state.upper() in STATE_SERIES:
+            series_list.append(STATE_SERIES[state.upper()])
+        results = {}
+        for series_id, label in series_list:
+            try:
+                resp = requests.get(
+                    f"{self.FRED_BASE}/series/observations",
+                    params={
+                        "series_id":  series_id,
+                        "api_key":    self.fred_key,
+                        "limit":      4,
+                        "sort_order": "desc",
+                        "file_type":  "json",
+                    },
+                    timeout=10,
+                )
+                obs = [o for o in resp.json().get("observations", []) if o.get("value") != "."]
+                if obs:
+                    results[series_id] = {
+                        "label":  label,
+                        "latest": float(obs[0]["value"]),
+                        "date":   obs[0]["date"],
+                    }
+            except Exception:
+                pass
+        return results if results else {"error": "空室率データ取得失敗"}
+
+    def get_collin_cad_data(self, address: str, city: str = "") -> dict:
+        """Texas Open Data Portal（Collin CAD）から固定資産評価データを取得（無料・APIキー不要）
+        対象: Collin County TX（Anna・Plano・Frisco・McKinney・Allen等）
+        データソース: https://data.texas.gov/resource/khef-anha.json
+        """
+        SUFFIXES = {
+            "DR","ST","AVE","BLVD","RD","LN","CT","WAY","PL","CIR","TRL",
+            "DRIVE","STREET","AVENUE","ROAD","LANE","COURT","TRAIL","CIRCLE","PLACE",
+        }
+        try:
+            street_part = address.split(",")[0].strip()
+            tokens = street_part.upper().split()
+            if len(tokens) < 2:
+                return {"error": "住所解析失敗"}
+            bldg_num    = tokens[0]
+            street_name = next((t for t in tokens[1:] if t not in SUFFIXES), "")
+            city_q      = city.upper() if city else ""
+            if not bldg_num.isdigit() or not street_name:
+                return {"error": "番地・通り名を解析できませんでした"}
+            resp = requests.get(
+                "https://data.texas.gov/resource/khef-anha.json",
+                params={
+                    "situsbldgnum":  bldg_num,
+                    "situsstreetname": street_name,
+                    "situscity":     city_q,
+                    "$limit":        3,
+                },
+                headers={"Accept": "application/json"},
+                timeout=12,
+            )
+            data = resp.json()
+            if not isinstance(data, list) or len(data) == 0:
+                return {"error": "Collin CAD: 物件が見つかりませんでした"}
+            rec        = data[0]
+            year_built = rec.get("imprvyearbuilt")
+            sqft       = rec.get("imprvmainarea")
+            mkt_val    = rec.get("currvalmarket")
+            imprv_val  = rec.get("currvalimprv")
+            land_val   = rec.get("currvalland")
+            prev_mkt   = rec.get("prevvalmarket")
+            result = {
+                "source":             "Collin CAD / Texas Open Data Portal",
+                "year_built":         int(year_built)       if year_built else None,
+                "sqft":               int(float(sqft))      if sqft       else None,
+                "market_value":       int(float(mkt_val))   if mkt_val    else None,
+                "imprv_value":        int(float(imprv_val)) if imprv_val  else None,
+                "land_value":         int(float(land_val))  if land_val   else None,
+                "prev_market_value":  int(float(prev_mkt))  if prev_mkt   else None,
+                "class_code":         rec.get("imprvclasscd", ""),
+                "pool":               rec.get("imprvpoolflag", "N") == "Y",
+                "owner":              rec.get("ownername", ""),
+                "deed_date":          (rec.get("deedeffdate", "") or "")[:10],
+                "val_year":           rec.get("currvalyear", ""),
+            }
+            if result["market_value"] and result["land_value"] and result["market_value"] > 0:
+                result["land_pct"] = round(result["land_value"] / result["market_value"] * 100, 1)
+            return result
+        except Exception as e:
+            return {"error": f"Collin CAD取得失敗: {str(e)}"}
+
+    def get_market_data(self, state: str = "") -> dict:
+        """市場データ（モーゲージ金利・賃貸空室率）を取得"""
+        return {
+            "mortgage_rates":    self.get_fred_mortgage_rates(),
+            "rental_vacancy":    self.get_fred_rental_vacancy(state),
+        }
 
     # ──────────────────────────────────────────────────────────────────────────
     # FEMA OpenFEMA — flood zone (free, no key)
@@ -755,12 +859,40 @@ class PropertyDataFetcher:
                 data.get("data", {}).get("metroareas", [])
                 + data.get("data", {}).get("counties", [])
             )
+            # マッチング戦略1: 都市名で検索
             match = next(
                 (a for a in areas if city.lower() in a.get("areaname", "").lower()),
                 None,
             )
-            if not match and areas:
-                match = areas[0]
+            # マッチング戦略2: 州別主要都市圏フォールバック（郊外の小都市・Anna TX等に対応）
+            if not match:
+                STATE_METRO_FALLBACKS = {
+                    "TX": ["dallas", "fort worth", "houston", "austin", "san antonio"],
+                    "IL": ["chicago", "metropolitan"],
+                    "CA": ["los angeles", "san francisco", "san diego", "sacramento"],
+                    "NY": ["new york", "metropolitan"],
+                    "FL": ["miami", "orlando", "tampa"],
+                    "AZ": ["phoenix"], "GA": ["atlanta"], "WA": ["seattle"],
+                    "CO": ["denver"], "NC": ["charlotte", "raleigh"], "TN": ["nashville"],
+                    "NV": ["las vegas"], "OH": ["columbus", "cleveland"],
+                    "PA": ["philadelphia", "pittsburgh"], "MI": ["detroit"],
+                    "MN": ["minneapolis"], "MO": ["st. louis"],
+                }
+                for kw in STATE_METRO_FALLBACKS.get(state.upper(), []):
+                    m = next(
+                        (a for a in areas if kw in a.get("areaname", "").lower()),
+                        None,
+                    )
+                    if m:
+                        match = m
+                        break
+            # マッチング戦略3: 2BRが$0でない最初のエリア
+            if not match:
+                match = next(
+                    (a for a in areas
+                     if int((a.get("basicdata") or {}).get("Two-Bedroom", 0) or 0) > 0),
+                    areas[0] if areas else None,
+                )
             if match:
                 bd = match.get("basicdata", {})
                 return {

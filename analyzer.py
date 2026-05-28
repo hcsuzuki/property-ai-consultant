@@ -20,9 +20,10 @@ class PropertyAnalyzer:
         property_data: dict,
         location_data: dict,
         financials: dict,
+        market_data: dict = None,
     ) -> dict:
         """全データを統合して投資分析を実行"""
-        prompt = self._build_prompt(property_data, location_data, financials)
+        prompt = self._build_prompt(property_data, location_data, financials, market_data or {})
         try:
             message = self.client.messages.create(
                 model="claude-haiku-4-5-20251001",  # 最安モデル。Sonnetに変えると高品質
@@ -39,10 +40,11 @@ class PropertyAnalyzer:
     # Prompt construction
     # ──────────────────────────────────────────────────────────────────────────
 
-    def _build_prompt(self, prop: dict, loc: dict, fin: dict) -> str:
+    def _build_prompt(self, prop: dict, loc: dict, fin: dict, mkt: dict = None) -> str:
         prop_section = self._fmt_property(prop)
         loc_section = self._fmt_location(loc)
         fin_section = self._fmt_financials(fin)
+        mkt_section = self._fmt_market(mkt or {})
 
         return f"""以下のアメリカ不動産物件を日本人投資家の視点から詳細に分析してください。
 
@@ -54,6 +56,9 @@ class PropertyAnalyzer:
 
 ━━━ 周辺環境 ━━━
 {loc_section}
+
+━━━ マーケットデータ ━━━
+{mkt_section}
 
 ━━━ 出力形式 ━━━
 以下のJSONのみを返してください（余分なテキスト不要）:
@@ -90,8 +95,10 @@ class PropertyAnalyzer:
 
 【重要な分析指針】
 1. 郡・エリア成長性の評価: 市単体の人口規模ではなく、郡レベルの人口増加率を重視してください。郊外の新興住宅地（例: テキサス北部の急成長郡内の小都市）は、市の絶対人口は小さくても郡全体の成長需要を受益します。郡の2年間成長率が+3%以上なら「成長エリア」として評価してください。
-2. 運営経費率の評価: 入力された経費率（例: 40%）は業界の標準的な「50%ルール」から導かれた保守的な見積もりです。単家族住宅の実績値は通常35〜45%の範囲であり、40%は妥当な前提です。根拠が不明確とは評価しないでください。
-3. 複数ソース価格比較: Zillow・Redfin・Realtor.comの価格情報が提供されている場合は、それらを比較して購入価格の妥当性を多角的に評価してください。
+2. 運営経費率の評価: 入力された経費率（例: 40%）は業界標準の「50%ルール」から導かれた保守的な見積もりです。単家族住宅の実績値は通常35〜45%の範囲であり、40%は妥当な前提です。「根拠不明確」とは評価しないでください。
+3. GRMの評価基準（Gross Rent Multiplier）: テキサス州DFW市場の単家族住宅における典型的なGRM相場は10〜14倍です（全米平均は12〜18倍）。GRMが低いほど賃料対価格比が優れているため、GRM10〜12倍はDFW市場では「良好」な投資効率です。比較対象がないとは評価しないでください。
+4. 複数ソース価格比較: Zillow・Redfin・Realtor.com・Collin CAD評価額が提供されている場合は、それらを比較して購入価格の妥当性を多角的に評価してください。
+5. 賃貸需要・空室率の評価: Census ACS空室率データやFREDの賃貸空室率データが提供されている場合、それを根拠として賃貸需要を具体的に評価してください。テキサス州の賃貸空室率データが示す通り、エリアの具体的な数値を使用してください。
 """
 
     def _fmt_property(self, prop: dict) -> str:
@@ -185,6 +192,26 @@ class PropertyAnalyzer:
         ]
         return "\n".join(lines)
 
+    def _fmt_market(self, mkt: dict) -> str:
+        if not mkt:
+            return "市場データなし"
+        lines = []
+        # 住宅ローン金利
+        rates = mkt.get("mortgage_rates", {})
+        if not rates.get("error"):
+            for sid, info in rates.items():
+                if isinstance(info, dict) and "latest" in info:
+                    lines.append(f"- {info['label']}金利（FRED）: {info['latest']:.3f}%")
+        # 賃貸空室率
+        vacancy = mkt.get("rental_vacancy", {})
+        if not vacancy.get("error"):
+            for sid, info in vacancy.items():
+                if isinstance(info, dict) and "latest" in info:
+                    v = info["latest"]
+                    v_label = "低空室（需要旺盛）" if v < 6 else "標準的水準" if v < 10 else "高空室（供給過剰気味）"
+                    lines.append(f"- {info['label']}（FRED {info.get('date','')}）: {v:.1f}% ― {v_label}")
+        return "\n".join(lines) if lines else "市場データなし"
+
     def _fmt_location(self, loc: dict) -> str:
         if loc.get("error"):
             return f"取得失敗: {loc['error']}"
@@ -262,6 +289,29 @@ class PropertyAnalyzer:
         hud = loc.get("hud_fmr", {})
         if hud and not hud.get("error"):
             lines.append(f"- HUD公正市場賃料 ({hud.get('area_name', '')}): 1BR=${hud.get('1br', 0):,} / 2BR=${hud.get('2br', 0):,} / 3BR=${hud.get('3br', 0):,}")
+
+        # Collin CAD 固定資産評価データ（Texas Open Data Portal）
+        ccad = loc.get("ccad", {})
+        if ccad and not ccad.get("error"):
+            lines.append("\n【Collin CAD 固定資産評価データ（Texas Open Data Portal）】")
+            if ccad.get("year_built"):
+                lines.append(f"  - 築年（公的記録）: {ccad['year_built']}年")
+            if ccad.get("sqft"):
+                lines.append(f"  - 建物面積（公的記録）: {ccad['sqft']:,} sq ft")
+            if ccad.get("market_value"):
+                lines.append(f"  - CAD市場評価額: ${ccad['market_value']:,}")
+            if ccad.get("imprv_value") and ccad.get("land_value"):
+                lines.append(f"  - 建物価値: ${ccad['imprv_value']:,} ／ 土地価値: ${ccad['land_value']:,}")
+            if ccad.get("land_pct"):
+                lines.append(f"  - 土地割合: {ccad['land_pct']}%（減価償却計算の参考値）")
+            if ccad.get("pool"):
+                lines.append(f"  - プール: あり")
+            if ccad.get("prev_market_value") and ccad.get("market_value"):
+                chg = ccad["market_value"] - ccad["prev_market_value"]
+                chg_pct = chg / ccad["prev_market_value"] * 100 if ccad["prev_market_value"] > 0 else 0
+                lines.append(f"  - 前年比価値変動: {chg:+,}（{chg_pct:+.1f}%）")
+            if ccad.get("deed_date"):
+                lines.append(f"  - 直近売買日（証書）: {ccad['deed_date']}")
 
         # Redfin価格情報
         redfin = loc.get("redfin", {})

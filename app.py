@@ -712,31 +712,81 @@ def show_results(
         st.markdown(html, unsafe_allow_html=True)
 
     with d2:
+        # 補完データ取得（Zillow不足時のフォールバック）
+        ccad_d    = loc.get("ccad", {})    if not loc.get("error") else {}
+        redfin_d2 = loc.get("redfin", {})  if not loc.get("error") else {}
+        realtor_d2= loc.get("realtor", {}) if not loc.get("error") else {}
+        ccad_ok   = ccad_d    and not ccad_d.get("error")
+        redfin_ok = redfin_d2 and not redfin_d2.get("error")
+        rltr_ok   = realtor_d2 and not realtor_d2.get("error")
+
+        def _best(zillow_val, ccad_key, redfin_key, realtor_key=None):
+            if zillow_val: return zillow_val
+            if ccad_ok   and ccad_d.get(ccad_key):   return ccad_d[ccad_key]
+            if redfin_ok and redfin_d2.get(redfin_key): return redfin_d2[redfin_key]
+            if realtor_key and rltr_ok and realtor_d2.get(realtor_key): return realtor_d2[realtor_key]
+            return None
+
         prop_rows = []
-        if not prop.get("error"):
-            prop_rows = [
-                ("物件タイプ",       prop.get("homeType", "不明")),
-                ("広さ",             f"{prop.get('livingArea','N/A')} sq ft" if prop.get("livingArea") else "N/A"),
-                ("土地面積",         f"{prop.get('lotAreaValue','N/A')} sq ft" if prop.get("lotAreaValue") else "N/A"),
-                ("寝室/浴室",        f"{prop.get('bedrooms','N/A')}床 / {prop.get('bathrooms','N/A')}浴"),
-                ("築年",             f"{prop.get('yearBuilt','N/A')}年" if prop.get("yearBuilt") else "N/A"),
-                ("Zestimate",        usd(prop.get("zestimate", 0)) if prop.get("zestimate") else "N/A"),
-                ("Rent Zestimate",   f"{usd(prop.get('rentZestimate',0))}/月" if prop.get("rentZestimate") else "N/A"),
-                ("最終売却",         f"{usd(prop.get('lastSoldPrice',0))} ({prop.get('lastSoldDate','')})"
-                                     if prop.get("lastSoldPrice") else "N/A"),
-            ]
-            if prop.get("rentZestimate") and fin.get("monthly_gross_income"):
-                rz       = prop["rentZestimate"]
-                ur       = fin["monthly_gross_income"]
+        if not prop.get("error") or ccad_ok or redfin_ok:
+            home_type  = prop.get("homeType") or (redfin_d2.get("status") if redfin_ok else None)
+            living_area= _best(prop.get("livingArea"), "sqft", "sqft", "sqft")
+            lot_area   = prop.get("lotAreaValue")
+            bedrooms   = _best(prop.get("bedrooms"),   None, "beds", "beds")
+            bathrooms  = _best(prop.get("bathrooms"),  None, "baths", "baths")
+            year_built = _best(prop.get("yearBuilt"),  "year_built", "year_built", "year_built")
+            zestimate  = prop.get("zestimate")
+            rent_zest  = prop.get("rentZestimate")
+            last_sold_p= prop.get("lastSoldPrice")
+            last_sold_d= prop.get("lastSoldDate", "")
+
+            # データソース注記
+            src_note = []
+            if year_built and not prop.get("yearBuilt"):
+                if ccad_ok and ccad_d.get("year_built") == year_built: src_note.append("築年: Collin CAD")
+                elif redfin_ok: src_note.append("築年: Redfin")
+            if living_area and not prop.get("livingArea"):
+                if ccad_ok and ccad_d.get("sqft") == living_area: src_note.append("面積: Collin CAD")
+                elif redfin_ok: src_note.append("面積: Redfin")
+
+            if home_type:  prop_rows.append(("物件タイプ", home_type))
+            if living_area: prop_rows.append(("広さ", f"{living_area:,} sq ft"))
+            if lot_area:   prop_rows.append(("土地面積", f"{prop.get('lotAreaValue','N/A')} sq ft"))
+            if bedrooms and bathrooms:
+                prop_rows.append(("寝室/浴室", f"{bedrooms}床 / {bathrooms}浴"))
+            if year_built: prop_rows.append(("築年", f"{year_built}年"))
+            if zestimate:  prop_rows.append(("Zestimate", usd(zestimate)))
+            if rent_zest:  prop_rows.append(("Rent Zestimate", f"{usd(rent_zest)}/月"))
+            if last_sold_p: prop_rows.append(("最終売却", f"{usd(last_sold_p)} ({last_sold_d})"))
+            if src_note:
+                prop_rows.append(("📎 補完データ出典", " / ".join(src_note)))
+
+            if rent_zest and fin.get("monthly_gross_income"):
+                rz = rent_zest; ur = fin["monthly_gross_income"]
                 diff_pct = (ur - rz) / rz * 100
-                marker   = "⬆️ 相場より高め" if diff_pct > 5 else "⬇️ 相場より低め" if diff_pct < -5 else "≈ 相場並み"
+                marker = "⬆️ 相場より高め" if diff_pct > 5 else "⬇️ 相場より低め" if diff_pct < -5 else "≈ 相場並み"
                 prop_rows.append(("賃料市場比較", f"{marker} ({diff_pct:+.1f}%)"))
+
+            # Collin CAD 固定資産評価 (TX only)
+            if ccad_ok:
+                prop_rows.append(("――――", ""))
+                prop_rows.append(("📋 CAD市場評価額", usd(ccad_d["market_value"]) if ccad_d.get("market_value") else "N/A"))
+                if ccad_d.get("imprv_value") and ccad_d.get("land_value"):
+                    prop_rows.append(("　建物 / 土地", f"{usd(ccad_d['imprv_value'])} / {usd(ccad_d['land_value'])}"))
+                if ccad_d.get("land_pct"):
+                    prop_rows.append(("　土地割合（減価償却参考）", f"{ccad_d['land_pct']}%"))
+                if ccad_d.get("pool"):
+                    prop_rows.append(("プール", "あり 🏊"))
+
         html = '<div class="card"><h4>🏠 物件情報</h4>'
         if prop_rows:
             for label, val in prop_rows:
-                if val != "N/A":
-                    html += (f'<div class="row"><span class="row-label">{label}</span>'
-                             f'<span class="row-value">{val}</span></div>')
+                if val in ("N/A", ""):
+                    if label == "――――":
+                        html += '<div style="border-top:1px solid #e8eaf6;margin:.4rem 0"></div>'
+                    continue
+                html += (f'<div class="row"><span class="row-label">{label}</span>'
+                         f'<span class="row-value">{val}</span></div>')
         else:
             html += f'<div style="color:#999;font-size:.9rem">物件データ取得失敗: {prop.get("error","")}</div>'
         html += "</div>"
@@ -1126,6 +1176,21 @@ def show_results(
         elif unemp.get("error"):
             st.caption(f"失業率データ: {unemp['error']}")
 
+        # FRED 賃貸空室率
+        vacancy_data = market_data.get("rental_vacancy", {}) if market_data else {}
+        if vacancy_data and not vacancy_data.get("error"):
+            vac_html = '<div class="card"><h4>🏘️ 賃貸空室率（FRED）</h4>'
+            for sid, info in vacancy_data.items():
+                if isinstance(info, dict) and "latest" in info:
+                    v = info["latest"]
+                    v_color = "#2e7d32" if v < 6 else "#e65100" if v < 10 else "#b71c1c"
+                    v_label = "低空室（需要旺盛）" if v < 6 else "標準" if v < 10 else "高空室（供給過剰）"
+                    vac_html += (f'<div class="row"><span class="row-label">{info["label"]}</span>'
+                                 f'<span class="row-value" style="color:{v_color}">'
+                                 f'{v:.1f}% ― {v_label}</span></div>')
+            vac_html += '<div style="font-size:.75rem;color:#aaa;margin-top:.5rem">出典: FRED / Federal Reserve</div></div>'
+            st.markdown(vac_html, unsafe_allow_html=True)
+
         # HUD Fair Market Rent
         hud = loc.get("hud_fmr", {}) if not loc.get("error") else {}
         if hud and not hud.get("error"):
@@ -1353,11 +1418,11 @@ def main():
         progress.progress(55)
 
         status.markdown("📊 **金融市場データを取得中（FRED）…**")
-        market_data = fetcher.get_market_data()
+        market_data = fetcher.get_market_data(state=loc_data.get("state", ""))
         progress.progress(75)
 
         status.markdown("🤖 **Claude AIが投資分析を実行中…**")
-        analysis = analyzer.analyze_property(prop_data, loc_data, fin)
+        analysis = analyzer.analyze_property(prop_data, loc_data, fin, market_data)
         progress.progress(100)
 
         status.empty()
