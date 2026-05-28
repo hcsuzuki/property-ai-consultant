@@ -1418,7 +1418,10 @@ def main():
         progress.progress(55)
 
         status.markdown("📊 **金融市場データを取得中（FRED）…**")
-        market_data = fetcher.get_market_data(state=loc_data.get("state", ""))
+        try:
+            market_data = fetcher.get_market_data(state=loc_data.get("state", ""))
+        except TypeError:
+            market_data = fetcher.get_market_data()
         progress.progress(75)
 
         status.markdown("🤖 **Claude AIが投資分析を実行中…**")
