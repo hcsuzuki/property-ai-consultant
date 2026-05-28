@@ -146,9 +146,10 @@ class PropertyDataFetcher:
             "crime":        self.get_crime_data(lat, lng, city, state),
             "walk_score":   self.get_walk_score(lat, lng, address),
             "flood_zone":   self.get_fema_flood_zone(lat, lng),
-            "demographics": self.get_census_demographics(zipcode),
-            "unemployment": self.get_bls_unemployment(state) if state else {"error": "州不明"},
-            "hud_fmr":      self.get_hud_fair_market_rent(state, city) if state else {"error": "州不明"},
+            "demographics":      self.get_census_demographics(zipcode),
+            "population_growth": self.get_county_population_growth(address, state) if state else {"error": "州不明"},
+            "unemployment":      self.get_bls_unemployment(state) if state else {"error": "州不明"},
+            "hud_fmr":           self.get_hud_fair_market_rent(state, city) if state else {"error": "州不明"},
         }
 
     # ──────────────────────────────────────────────────────────────────────────
@@ -333,6 +334,78 @@ class PropertyDataFetcher:
     # ──────────────────────────────────────────────────────────────────────────
     # US Census ACS 5-Year API
     # ──────────────────────────────────────────────────────────────────────────
+
+    def get_county_population_growth(self, address: str, state: str) -> dict:
+        """Census Geocoder（無料） + Census PEP APIで郡レベルの人口増加データを取得"""
+        # Step 1: Census Geocoderで住所→郡FIPSコードを取得（キー不要）
+        try:
+            parts  = [p.strip() for p in address.split(",")]
+            street = parts[0] if len(parts) > 0 else address
+            city   = parts[1] if len(parts) > 1 else ""
+            resp   = requests.get(
+                "https://geocoding.geo.census.gov/geocoder/geographies/address",
+                params={
+                    "street":    street,
+                    "city":      city,
+                    "state":     state,
+                    "benchmark": "Public_AR_Census2020",
+                    "vintage":   "Census2020_Census2020",
+                    "format":    "json",
+                },
+                timeout=15,
+            )
+            matches = resp.json().get("result", {}).get("addressMatches", [])
+            if not matches:
+                return {"error": "郡コードが取得できませんでした"}
+            counties = matches[0].get("geographies", {}).get("Counties", [])
+            if not counties:
+                return {"error": "郡データなし"}
+            county_fips = counties[0].get("COUNTY", "")
+            state_fips  = counties[0].get("STATE", "")
+            county_name = counties[0].get("NAME", "")
+            if not county_fips or not state_fips:
+                return {"error": "FIPSコード取得失敗"}
+        except Exception as e:
+            return {"error": f"Geocoder失敗: {str(e)}"}
+
+        # Step 2: Census PEP APIで人口増加データを取得
+        if not self.census_key:
+            return {"error": "CENSUS_API_KEY 未設定"}
+        try:
+            resp = requests.get(
+                f"{self.CENSUS_BASE}/2022/pep/population",
+                params={
+                    "get": "NAME,POP_2022,POP_2021,POP_2020,DENSITY_2022",
+                    "for": f"county:{county_fips}",
+                    "in":  f"state:{state_fips}",
+                    "key": self.census_key,
+                },
+                timeout=10,
+            )
+            data = resp.json()
+            if len(data) >= 2:
+                row      = dict(zip(data[0], data[1]))
+                pop_2020 = int(row.get("POP_2020", 0) or 0)
+                pop_2021 = int(row.get("POP_2021", 0) or 0)
+                pop_2022 = int(row.get("POP_2022", 0) or 0)
+                density  = float(row.get("DENSITY_2022", 0) or 0)
+                growth_2yr = round((pop_2022 - pop_2020) / pop_2020 * 100, 1) if pop_2020 > 0 else 0
+                growth_1yr = round((pop_2022 - pop_2021) / pop_2021 * 100, 1) if pop_2021 > 0 else 0
+                return {
+                    "county_name": county_name,
+                    "state_fips":  state_fips,
+                    "county_fips": county_fips,
+                    "pop_2020":    pop_2020,
+                    "pop_2021":    pop_2021,
+                    "pop_2022":    pop_2022,
+                    "growth_2yr_pct": growth_2yr,
+                    "growth_1yr_pct": growth_1yr,
+                    "density":     round(density, 1),
+                    "source":      "US Census Population Estimates 2022",
+                }
+        except Exception as e:
+            return {"error": f"人口推計データ取得失敗: {str(e)}"}
+        return {"error": "データなし"}
 
     def get_census_demographics(self, zipcode: str) -> dict:
         """US Census ACS 5-Year から人口統計・所得・住宅データを取得"""

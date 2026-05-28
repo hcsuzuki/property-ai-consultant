@@ -240,6 +240,14 @@ class PropertyAnalyzer:
             lines.append(f"- 総人口: {demo.get('total_population', 0):,}人")
             lines.append(f"- 空室率: {demo.get('vacancy_rate', 0):.1f}% / 借家比率: {demo.get('renter_pct', 0):.1f}%")
 
+        # County population growth
+        pg = loc.get("population_growth", {})
+        if pg and not pg.get("error"):
+            g2 = pg.get("growth_2yr_pct", 0)
+            trend = "急成長エリア" if g2 >= 5 else "成長中" if g2 >= 3 else "緩成長" if g2 >= 0 else "人口減少"
+            lines.append(f"- 郡人口増加率（2020→2022）: {g2:+.1f}% ― {trend} ({pg.get('county_name','')})")
+            lines.append(f"- 2022年郡人口: {pg.get('pop_2022',0):,}人 / 人口密度: {pg.get('density',0):.1f}人/sq mi")
+
         # BLS unemployment
         unemp = loc.get("unemployment", {})
         if unemp and not unemp.get("error"):

@@ -881,8 +881,9 @@ def show_results(
             else:
                 st.success(f"✅ **道路情報**: 住宅街区内の静かな道路（{road['road_name']}）")
 
-        # Census 人口統計
-        demo = loc.get("demographics", {})
+        # Census 人口統計 + 郡人口増加
+        demo       = loc.get("demographics", {})
+        pop_growth = loc.get("population_growth", {})
         if demo and not demo.get("error"):
             st.markdown('<div class="section-title">🏘️ 近隣統計情報（US Census ACS）</div>', unsafe_allow_html=True)
             dem1, dem2, dem3, dem4 = st.columns(4)
@@ -893,6 +894,45 @@ def show_results(
                         "低空室（需要高）" if demo.get("vacancy_rate", 0) < 8 else "要確認")
             dem4.metric("借家比率", f"{demo.get('renter_pct', 0):.1f}%",
                         "賃貸需要高" if demo.get("renter_pct", 0) >= 40 else "持家エリア")
+
+        # 郡レベル人口増加トレンド
+        if pop_growth and not pop_growth.get("error"):
+            g2 = pop_growth.get("growth_2yr_pct", 0)
+            g1 = pop_growth.get("growth_1yr_pct", 0)
+            g2_color = "#2e7d32" if g2 >= 3 else "#e65100" if g2 >= 0 else "#b71c1c"
+            g1_color = "#2e7d32" if g1 >= 1.5 else "#e65100" if g1 >= 0 else "#b71c1c"
+            g2_label = "急成長 🚀" if g2 >= 5 else "成長中 ✅" if g2 >= 3 else "緩成長 ➡️" if g2 >= 0 else "人口減少 ⚠️"
+            g1_label = "高成長" if g1 >= 3 else "成長中" if g1 >= 1.5 else "横ばい" if g1 >= 0 else "減少"
+            pg1, pg2, pg3, pg4 = st.columns(4)
+            pg1.metric("郡名", pop_growth.get("county_name", ""), "Census PEP 2022")
+            pg2.metric("2022年人口", f"{pop_growth.get('pop_2022', 0):,}人", "")
+            pg3.metric("2年間成長率（2020→2022）",
+                       f"{g2:+.1f}%",
+                       g2_label)
+            pg4.metric("直近1年成長率（2021→2022）",
+                       f"{g1:+.1f}%",
+                       g1_label)
+            # 成長率グラフバー
+            bar_color = "#1b5e20" if g2 >= 5 else "#43a047" if g2 >= 3 else "#fb8c00" if g2 >= 0 else "#e53935"
+            bar_width = min(abs(g2) * 8, 100)
+            st.markdown(f"""
+            <div style="background:#f5f5f5;border-radius:8px;padding:.8rem 1rem;margin-top:.5rem">
+                <div style="font-size:.85rem;color:#555;margin-bottom:.4rem">
+                    📈 <strong>{pop_growth.get('county_name','')}</strong> 人口増加トレンド
+                    <span style="font-size:.75rem;color:#aaa;margin-left:.5rem">出典: US Census Bureau Population Estimates</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:.8rem">
+                    <div style="width:{bar_width}%;height:18px;background:{bar_color};border-radius:4px;min-width:4px"></div>
+                    <span style="font-size:.9rem;font-weight:700;color:{g2_color}">2年間 {g2:+.1f}% ({g2_label})</span>
+                </div>
+                <div style="font-size:.78rem;color:#777;margin-top:.3rem">
+                    人口密度: {pop_growth.get('density', 0):.1f}人/sq mi ／
+                    2020年: {pop_growth.get('pop_2020', 0):,}人 →
+                    2021年: {pop_growth.get('pop_2021', 0):,}人 →
+                    2022年: {pop_growth.get('pop_2022', 0):,}人
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
     else:
         st.info(f"周辺環境データ取得失敗: {loc.get('error')}")
