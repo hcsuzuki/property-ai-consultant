@@ -160,16 +160,33 @@ class PropertyDataFetcher:
     # ──────────────────────────────────────────────────────────────────────────
 
     def get_crime_data(self, lat: float, lng: float, city: str = "", state: str = "") -> dict:
-        """犯罪データを取得（Chicago詳細 / FBI全米対応）"""
-        # シカゴは独自のData Portalで半径ベースの詳細データを優先
-        if "CHICAGO" in city.upper() or ("IL" in state.upper() and 41.6 < lat < 42.1):
+        """犯罪データを取得（Chicago / Dallas / Austin / FBI全米対応）"""
+        city_up = city.upper()
+        state_up = state.upper()
+
+        # シカゴ（詳細・半径ベース）
+        if "CHICAGO" in city_up or (state_up == "IL" and 41.6 < lat < 42.1):
             result = self._get_chicago_crime(lat, lng)
             if not result.get("error"):
                 return result
-        # FBIデータで全米対応（TX・IL他すべての都市）
-        if city and state:
+
+        # ダラス広域（Collin County含む TX北部 — Anna TX対応）
+        if state_up == "TX" and 32.5 < lat < 33.5 and -97.5 < lng < -96.0:
+            result = self._get_dallas_crime(lat, lng)
+            if not result.get("error"):
+                return result
+
+        # オースティン広域
+        if state_up == "TX" and 29.9 < lat < 30.7 and -98.2 < lng < -97.3:
+            result = self._get_austin_crime(lat, lng)
+            if not result.get("error"):
+                return result
+
+        # FBI API（全米フォールバック）
+        if city and state and self.fbi_key:
             return self.get_fbi_crime_data(city, state)
-        return {"error": "犯罪データ未対応エリア", "safety_score": None}
+
+        return {"error": f"犯罪データ未対応エリア（{city}）", "safety_score": None}
 
     def _get_chicago_crime(self, lat: float, lng: float, radius_m: int = 800) -> dict:
         """Chicago Data Portal から過去1年の犯罪データを取得（無料・APIキー不要）"""
@@ -212,6 +229,90 @@ class PropertyDataFetcher:
         except Exception:
             pass
         return {"error": "シカゴ犯罪データ取得失敗", "safety_score": None}
+
+    def _get_dallas_crime(self, lat: float, lng: float, radius_m: int = 2000) -> dict:
+        """Dallas Open Data Portal から犯罪データを取得（APIキー不要・TX北部広域対応）"""
+        lat_d = radius_m / 111_000
+        lng_d = radius_m / (111_000 * math.cos(math.radians(lat)))
+        year  = datetime.datetime.now().year - 1
+        try:
+            resp = requests.get(
+                "https://www.dallasopendata.com/resource/qv6i-rri7.json",
+                params={
+                    "$where": (
+                        f"date1 >= '{year}-01-01T00:00:00' AND date1 < '{year+1}-01-01T00:00:00' "
+                        f"AND y_cordinate > '{lat - lat_d:.5f}' AND y_cordinate < '{lat + lat_d:.5f}' "
+                        f"AND x_cordinate > '{lng - lng_d:.5f}' AND x_cordinate < '{lng + lng_d:.5f}'"
+                    ),
+                    "$limit":  500,
+                    "$select": "offincident",
+                },
+                timeout=15,
+            )
+            data = resp.json()
+            if isinstance(data, list) and len(data) > 0:
+                total       = len(data)
+                type_counts = Counter(c.get("offincident", "OTHER") for c in data)
+                if   total == 0:   safety = 95
+                elif total < 10:   safety = 85
+                elif total < 30:   safety = 70
+                elif total < 70:   safety = 50
+                elif total < 150:  safety = 30
+                else:              safety = 15
+                return {
+                    "source":          "Dallas Open Data Portal",
+                    "year":            year,
+                    "radius_meters":   radius_m,
+                    "total_incidents": total,
+                    "top_crime_types": [{"type": t, "count": c} for t, c in type_counts.most_common(5)],
+                    "safety_score":    safety,
+                    "safety_label":    "安全" if safety >= 70 else "普通" if safety >= 40 else "要注意",
+                }
+        except Exception:
+            pass
+        return {"error": "Dallas犯罪データ取得失敗", "safety_score": None}
+
+    def _get_austin_crime(self, lat: float, lng: float, radius_m: int = 2000) -> dict:
+        """Austin Open Data Portal から犯罪データを取得（APIキー不要）"""
+        lat_d = radius_m / 111_000
+        lng_d = radius_m / (111_000 * math.cos(math.radians(lat)))
+        year  = datetime.datetime.now().year - 1
+        try:
+            resp = requests.get(
+                "https://data.austintexas.gov/resource/fdj4-gpfu.json",
+                params={
+                    "$where": (
+                        f"occ_date >= '{year}-01-01T00:00:00' AND occ_date < '{year+1}-01-01T00:00:00' "
+                        f"AND latitude > '{lat - lat_d:.5f}' AND latitude < '{lat + lat_d:.5f}' "
+                        f"AND longitude > '{lng - lng_d:.5f}' AND longitude < '{lng + lng_d:.5f}'"
+                    ),
+                    "$limit":  500,
+                    "$select": "highest_offense_desc",
+                },
+                timeout=15,
+            )
+            data = resp.json()
+            if isinstance(data, list) and len(data) > 0:
+                total       = len(data)
+                type_counts = Counter(c.get("highest_offense_desc", "OTHER") for c in data)
+                if   total == 0:   safety = 95
+                elif total < 10:   safety = 85
+                elif total < 30:   safety = 70
+                elif total < 70:   safety = 50
+                elif total < 150:  safety = 30
+                else:              safety = 15
+                return {
+                    "source":          "Austin Open Data Portal",
+                    "year":            year,
+                    "radius_meters":   radius_m,
+                    "total_incidents": total,
+                    "top_crime_types": [{"type": t, "count": c} for t, c in type_counts.most_common(5)],
+                    "safety_score":    safety,
+                    "safety_label":    "安全" if safety >= 70 else "普通" if safety >= 40 else "要注意",
+                }
+        except Exception:
+            pass
+        return {"error": "Austin犯罪データ取得失敗", "safety_score": None}
 
     def get_fbi_crime_data(self, city: str, state: str) -> dict:
         """FBI Crime Data Explorer API から市区レベルの犯罪データを取得（全米対応）"""
