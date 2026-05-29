@@ -21,9 +21,13 @@ class PropertyAnalyzer:
         location_data: dict,
         financials: dict,
         market_data: dict = None,
+        industry_news: dict = None,
     ) -> dict:
         """全データを統合して投資分析を実行"""
-        prompt = self._build_prompt(property_data, location_data, financials, market_data or {})
+        prompt = self._build_prompt(
+            property_data, location_data, financials,
+            market_data or {}, industry_news or {},
+        )
         try:
             message = self.client.messages.create(
                 model="claude-haiku-4-5-20251001",  # 最安モデル。Sonnetに変えると高品質
@@ -40,12 +44,14 @@ class PropertyAnalyzer:
     # Prompt construction
     # ──────────────────────────────────────────────────────────────────────────
 
-    def _build_prompt(self, prop: dict, loc: dict, fin: dict, mkt: dict = None) -> str:
-        prop_section = self._fmt_property(prop)
-        loc_section  = self._fmt_location(loc)
-        fin_section  = self._fmt_financials(fin)
-        mkt_section  = self._fmt_market(mkt or {})
-        news_section = self._fmt_news(loc)
+    def _build_prompt(self, prop: dict, loc: dict, fin: dict,
+                      mkt: dict = None, ind_news: dict = None) -> str:
+        prop_section     = self._fmt_property(prop)
+        loc_section      = self._fmt_location(loc)
+        fin_section      = self._fmt_financials(fin)
+        mkt_section      = self._fmt_market(mkt or {})
+        local_news_sec   = self._fmt_news(loc)
+        industry_news_sec = self._fmt_industry_news(ind_news or {})
 
         return f"""以下のアメリカ不動産物件を日本人投資家の視点から詳細に分析してください。
 
@@ -61,8 +67,11 @@ class PropertyAnalyzer:
 ━━━ マーケットデータ ━━━
 {mkt_section}
 
-━━━ 地域ニュース・開発動向 ━━━
-{news_section}
+━━━ 地域ニュース・開発動向（エリア固有） ━━━
+{local_news_sec}
+
+━━━ 業界ニュース・US不動産マクロ市場 ━━━
+{industry_news_sec}
 
 ━━━ 出力形式 ━━━
 以下のJSONのみを返してください（余分なテキスト不要）:
@@ -103,7 +112,8 @@ class PropertyAnalyzer:
 3. GRMの評価基準（Gross Rent Multiplier）: テキサス州DFW市場の単家族住宅における典型的なGRM相場は10〜14倍です（全米平均は12〜18倍）。GRMが低いほど賃料対価格比が優れているため、GRM10〜12倍はDFW市場では「良好」な投資効率です。比較対象がないとは評価しないでください。
 4. 複数ソース価格比較: Zillow・Redfin・Realtor.com・Collin CAD評価額が提供されている場合は、それらを比較して購入価格の妥当性を多角的に評価してください。
 5. 賃貸需要・空室率の評価: Census ACS空室率データやFREDの賃貸空室率データが提供されている場合、それを根拠として賃貸需要を具体的に評価してください。テキサス州の賃貸空室率データが示す通り、エリアの具体的な数値を使用してください。
-6. 地域ニュース・開発動向の活用: 「地域ニュース・開発動向」セクションに記事が含まれる場合、それらの主要なポイントを日本語に要約して「市場見通し（market_outlook）」と「総合評価（overall_comment）」に反映してください。新規開発プロジェクト・インフラ整備・雇用創出・ゾーニング変更などのポジティブ情報はエリアの成長性評価に活用してください。記事が英語の場合は内容を把握して日本語で記述してください。
+6. 地域ニュース・開発動向の活用: 「地域ニュース・開発動向（エリア固有）」セクションに記事が含まれる場合、それらの主要なポイントを日本語に要約して「市場見通し（market_outlook）」と「総合評価（overall_comment）」に反映してください。新規開発プロジェクト・インフラ整備・雇用創出・ゾーニング変更などのポジティブ情報はエリアの成長性評価に活用してください。記事が英語の場合は内容を把握して日本語で記述してください。
+7. 業界ニュース・マクロ市場の活用: 「業界ニュース・US不動産マクロ市場」セクション（CNBC/Bloomberg/WSJ/NYT/Redfin等）に記事が含まれる場合、住宅ローン金利動向・住宅在庫水準・投資家センチメント・FRB金融政策などのマクロ要因を「市場見通し（market_outlook）」に具体的に反映してください。日本語記事が含まれる場合は日本人投資家の視点・懸念事項として「総合評価（overall_comment）」に組み込んでください。
 """
 
     def _fmt_property(self, prop: dict) -> str:
@@ -360,6 +370,48 @@ class PropertyAnalyzer:
             dom_str   = f"{dom}日" if dom is not None else "N/A"
             ppsf_str  = f"${ppsf:,}/sqft" if ppsf else "N/A"
             lines.append(f"- Realtor.com価格情報: {price_str} / $/sqft: {ppsf_str} / 市場掲載日数: {dom_str} / ステータス: {realtor.get('status','N/A')}")
+
+        return "\n".join(lines)
+
+    def _fmt_industry_news(self, ind: dict) -> str:
+        """業界ニュース（CNBC/Bloomberg/WSJ/NYT等）をAIプロンプト用にフォーマット"""
+        if not ind:
+            return "業界ニュースデータなし"
+
+        mkt  = ind.get("market_news",     [])
+        inv  = ind.get("investment_news", [])
+        jp   = ind.get("japanese_news",   [])
+
+        if not mkt and not inv and not jp:
+            return "業界ニュースデータなし（取得0件）"
+
+        src = ind.get("source", "CNBC / Bloomberg / WSJ / NYT / Redfin")
+        lines = [
+            f"【US不動産業界ニュース】出典: {src}",
+            f"取得総数: {ind.get('total_found', 0)}件",
+            "",
+        ]
+
+        def _add_articles(header: str, articles: list, max_n: int = 5):
+            if not articles:
+                return
+            lines.append(header)
+            for i, a in enumerate(articles[:max_n], 1):
+                title   = a.get("title", "")
+                date    = a.get("date", "")
+                source  = a.get("source", "")
+                summary = a.get("summary", "")
+                line = f"  {i}. [{date}] {title}"
+                if source:
+                    line += f"  ({source})"
+                if summary:
+                    line += f"\n     → {summary[:180]}"
+                lines.append(line)
+            lines.append("")
+
+        _add_articles("【不動産市場・住宅市場・金利動向 (CNBC/Bloomberg/WSJ/NYT/Redfin)】", mkt)
+        _add_articles("【投資・ディール情報 (The Real Deal/RealEstateNews)】", inv)
+        _add_articles("【日本語ニュース（日本人投資家の視点）】", jp)
 
         return "\n".join(lines)
 

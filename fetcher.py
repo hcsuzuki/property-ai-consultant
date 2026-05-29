@@ -51,7 +51,19 @@ class PropertyDataFetcher:
     WALKSCORE_URL  = "https://api.walkscore.com/score"
     FBI_BASE       = "https://api.usa.gov/crime/fbi/sapi"
     SCHOOLDIGGER_BASE = "https://api.schooldigger.com/v2.0"
-    OVERPASS_URL   = "https://overpass-api.de/api/interpreter"
+    OVERPASS_URL      = "https://overpass-api.de/api/interpreter"
+
+    # 業界ニュース RSS ソース（直接フィード）
+    _NEWS_RSS_SOURCES = [
+        # (表示名,                    RSS URL,                                                    カテゴリ,    max件数)
+        ("CNBC Real Estate",    "https://www.cnbc.com/id/10000115/device/rss/rss.html",         "market",     4),
+        ("NYT Real Estate",     "https://rss.nytimes.com/services/xml/rss/nyt/RealEstate.xml",   "market",     3),
+        ("Redfin News",         "https://www.redfin.com/news/feed/",                             "market",     3),
+        ("The Real Deal",       "https://therealdeal.com/feed/",                                 "investment", 4),
+        ("RealEstateNews.com",  "https://www.realestatenews.com/feed/",                          "market",     3),
+        ("Bloomberg Markets",   "https://feeds.bloomberg.com/markets/news.rss",                  "macro",      3),
+        ("WSJ Markets",         "https://feeds.a.dj.com/rss/RSSMarketsMain.xml",                 "macro",      3),
+    ]
 
     def __init__(self):
         self.rapidapi_key       = os.getenv("RAPIDAPI_KEY", "")
@@ -854,6 +866,223 @@ class PropertyDataFetcher:
                         "source":   a.get("domain", ""),
                         "summary":  "",
                         "provider": "GDELT",
+                    })
+            return articles
+        except Exception:
+            return []
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Industry News — CNBC / Bloomberg / WSJ / NYT / Redfin / The Real Deal
+    # ──────────────────────────────────────────────────────────────────────────
+
+    def get_industry_news(self) -> dict:
+        """US 不動産業界ニュース・マクロ市場情報を複数媒体から取得
+
+        ソース:
+        - 直接 RSS: CNBC RE, NYT RE, Redfin News, The Real Deal,
+                    RealEstateNews.com, Bloomberg Markets, WSJ Markets
+        - Google News RSS (英語): US housing market
+        - Google News RSS (日本語): 米国不動産投資
+        - GDELT Project: bloomberg.com / wsj.com ドメイン補完
+        """
+        all_articles: list = []
+
+        # ① 業界メディアの直接 RSS
+        for name, url, cat, n in self._NEWS_RSS_SOURCES:
+            arts = self._fetch_rss_direct(name, url, cat, max_results=n)
+            all_articles.extend(arts)
+
+        # ② Google News RSS (英語) — US real estate macro
+        eng_queries = [
+            "US real estate housing market mortgage rates",
+            "US housing inventory prices 2025 2026",
+            "real estate investment REIT market outlook",
+            "Federal Reserve interest rates housing",
+        ]
+        for q in eng_queries:
+            arts = self._fetch_google_news_rss(q, max_results=2)
+            for a in arts:
+                a.setdefault("category", "market")
+            all_articles.extend(arts)
+
+        # ③ Google News RSS (日本語) — 日本人投資家視点
+        jp_queries = [
+            "米国 不動産 投資 市場",
+            "アメリカ 住宅 不動産 金利",
+            "米国 不動産 REIT 市場動向",
+        ]
+        for q in jp_queries:
+            arts = self._fetch_google_news_rss_ja(q, max_results=3)
+            all_articles.extend(arts)
+
+        # ④ GDELT — bloomberg.com / wsj.com 補完
+        for domain in ["bloomberg.com", "wsj.com"]:
+            arts = self._fetch_gdelt_by_domain(domain, "real estate housing market", max_results=3)
+            all_articles.extend(arts)
+
+        # 重複排除
+        seen: set = set()
+        deduped: list = []
+        for a in all_articles:
+            key = (a.get("url") or a.get("title", ""))[:80]
+            if key and key not in seen:
+                seen.add(key)
+                deduped.append(a)
+
+        # 日付降順ソート（新しい順）
+        deduped.sort(key=lambda x: x.get("date", ""), reverse=True)
+
+        # カテゴリ別分類
+        market_arts  = [a for a in deduped
+                        if a.get("category") in ("market", "macro")
+                        and a.get("lang") != "ja"][:10]
+        invest_arts  = [a for a in deduped
+                        if a.get("category") == "investment"][:6]
+        jp_arts      = [a for a in deduped
+                        if a.get("lang") == "ja"
+                        or a.get("category") == "japanese"][:6]
+
+        return {
+            "market_news":     market_arts,
+            "investment_news": invest_arts,
+            "japanese_news":   jp_arts,
+            "total_found":     len(deduped),
+            "source": (
+                "CNBC / NYT / Redfin News / The Real Deal / "
+                "RealEstateNews.com / Bloomberg / WSJ / Google News"
+            ),
+        }
+
+    def _fetch_rss_direct(self, name: str, url: str, category: str,
+                          max_results: int = 4) -> list:
+        """指定 URL の RSS 2.0 / Atom フィードを直接フェッチして記事リストを返す"""
+        try:
+            resp = requests.get(
+                url, timeout=12,
+                headers={"User-Agent": "Mozilla/5.0 (compatible; PropertyBot/1.0)"},
+            )
+            resp.raise_for_status()
+            root = ET.fromstring(resp.content)
+
+            # Atom フォールバック
+            atom_ns = "http://www.w3.org/2005/Atom"
+            if root.tag == f"{{{atom_ns}}}feed" or root.tag == "feed":
+                articles = []
+                for entry in root.findall(f"{{{atom_ns}}}entry")[:max_results]:
+                    title = (entry.findtext(f"{{{atom_ns}}}title") or "").strip()
+                    link_el = entry.find(f"{{{atom_ns}}}link")
+                    link = link_el.get("href", "") if link_el is not None else ""
+                    pub = (entry.findtext(f"{{{atom_ns}}}published")
+                           or entry.findtext(f"{{{atom_ns}}}updated") or "")
+                    date_str = pub[:10] if pub else ""
+                    if title:
+                        articles.append({
+                            "title": title, "url": link, "date": date_str,
+                            "source": name, "summary": "",
+                            "category": category, "provider": "RSS",
+                        })
+                return articles
+
+            # RSS 2.0
+            channel = root.find("channel")
+            if channel is None:
+                return []
+            articles = []
+            for item in channel.findall("item")[:max_results]:
+                raw_title = item.findtext("title", "")
+                parts = raw_title.rsplit(" - ", 1)
+                title = parts[0].strip()
+                link  = item.findtext("link", "")
+                desc_raw = item.findtext("description", "")
+                desc = re.sub(r"<[^>]+>", " ", desc_raw).strip()[:250]
+                pub_raw = item.findtext("pubDate", "")
+                try:
+                    from email.utils import parsedate_to_datetime
+                    date_str = parsedate_to_datetime(pub_raw).strftime("%Y-%m-%d")
+                except Exception:
+                    date_str = pub_raw[:10] if pub_raw else ""
+                if title:
+                    articles.append({
+                        "title": title, "url": link, "date": date_str,
+                        "source": name, "summary": desc,
+                        "category": category, "provider": "RSS",
+                    })
+            return articles
+        except Exception:
+            return []
+
+    def _fetch_google_news_rss_ja(self, query: str, max_results: int = 4) -> list:
+        """Google News RSS 日本語版からニュースを取得（hl=ja&gl=JP）"""
+        url = (
+            "https://news.google.com/rss/search"
+            f"?q={_url_quote(query)}&hl=ja&gl=JP&ceid=JP:ja"
+        )
+        try:
+            resp = requests.get(
+                url, timeout=12,
+                headers={"User-Agent": "Mozilla/5.0 (compatible; PropertyBot/1.0)"},
+            )
+            resp.raise_for_status()
+            root    = ET.fromstring(resp.content)
+            channel = root.find("channel")
+            if channel is None:
+                return []
+            articles = []
+            for item in channel.findall("item")[:max_results]:
+                raw_title = item.findtext("title", "")
+                parts    = raw_title.rsplit(" - ", 1)
+                title    = parts[0].strip()
+                src_sfx  = parts[1].strip() if len(parts) > 1 else ""
+                link     = item.findtext("link", "")
+                desc_raw = item.findtext("description", "")
+                desc     = re.sub(r"<[^>]+>", " ", desc_raw).strip()[:250]
+                pub_raw  = item.findtext("pubDate", "")
+                try:
+                    from email.utils import parsedate_to_datetime
+                    date_str = parsedate_to_datetime(pub_raw).strftime("%Y-%m-%d")
+                except Exception:
+                    date_str = pub_raw[:10] if pub_raw else ""
+                src_el = item.find("source")
+                source = (src_el.text if src_el is not None else src_sfx) or src_sfx
+                if title:
+                    articles.append({
+                        "title": title, "url": link, "date": date_str,
+                        "source": source, "summary": desc,
+                        "category": "japanese", "lang": "ja",
+                        "provider": "Google News JP",
+                    })
+            return articles
+        except Exception:
+            return []
+
+    def _fetch_gdelt_by_domain(self, domain: str, topic: str,
+                               max_results: int = 3) -> list:
+        """GDELT Project API で特定ドメイン（bloomberg.com 等）のニュースを取得"""
+        query = f"domain:{domain} {topic}"
+        url = (
+            "https://api.gdeltproject.org/api/v2/doc/doc"
+            f"?query={_url_quote(query)}&mode=artlist&maxrecords={max_results}"
+            "&format=json&sourcelang=english&sourcecountry=US"
+        )
+        try:
+            resp = requests.get(url, timeout=15,
+                                headers={"User-Agent": "Mozilla/5.0 (compatible; PropertyBot/1.0)"})
+            raw_list = resp.json().get("articles", [])
+            articles = []
+            for a in raw_list[:max_results]:
+                raw_date = str(a.get("seendate", ""))
+                try:
+                    date_str = f"{raw_date[:4]}-{raw_date[4:6]}-{raw_date[6:8]}"
+                except Exception:
+                    date_str = ""
+                title = (a.get("title") or "").strip()
+                dom = a.get("domain", "")
+                cat = "macro" if any(d in dom for d in ("bloomberg", "wsj")) else "market"
+                if title:
+                    articles.append({
+                        "title": title, "url": a.get("url", ""),
+                        "date": date_str, "source": dom,
+                        "summary": "", "category": cat, "provider": "GDELT",
                     })
             return articles
         except Exception:

@@ -515,6 +515,7 @@ def show_results(
     tax_bracket: float = 25.0,
     exit_cost_pct: float = 6.0,
     market_data: dict = None,
+    industry_news: dict = None,
 ):
     score     = analysis.get("investment_score", 0)
     breakdown = analysis.get("score_breakdown", {})
@@ -1359,6 +1360,93 @@ def show_results(
                     else:
                         st.markdown(f"📰 {ttl}&ensp;—&ensp;{date}  *{src}*")
 
+    # ── Industry / Market News ────────────────────────────────────────────────
+    if industry_news and (
+        industry_news.get("market_news")
+        or industry_news.get("investment_news")
+        or industry_news.get("japanese_news")
+    ):
+        mkt_arts  = industry_news.get("market_news",     [])
+        inv_arts  = industry_news.get("investment_news", [])
+        jp_arts   = industry_news.get("japanese_news",   [])
+        total_n   = industry_news.get("total_found", 0)
+        src_label = industry_news.get("source", "")
+
+        st.markdown('<div class="section-title">🌐 業界ニュース・マーケットインサイト</div>',
+                    unsafe_allow_html=True)
+        st.caption(f"米国不動産市場の最新動向（取得 {total_n}件 ｜ 出典: {src_label}）")
+
+        tab_labels = []
+        if mkt_arts:  tab_labels.append("🏠 不動産・住宅市場")
+        if inv_arts:  tab_labels.append("💰 投資・ディール情報")
+        if jp_arts:   tab_labels.append("🇯🇵 日本語ニュース")
+
+        if tab_labels:
+            tabs = st.tabs(tab_labels)
+            tab_idx = 0
+
+            def _news_cards(container, articles, n_cols=3):
+                n = min(len(articles), 6)
+                if n == 0:
+                    container.info("ニュースデータなし")
+                    return
+                cols = container.columns(min(n, n_cols))
+                for i, art in enumerate(articles[:n]):
+                    col  = cols[i % n_cols]
+                    ttl  = art.get("title", "")
+                    url  = art.get("url", "")
+                    date = art.get("date", "")
+                    src  = art.get("source", "")
+                    summ = art.get("summary", "")[:160]
+                    lang = art.get("lang", "")
+
+                    border_col = "#1565c0" if lang == "ja" else "#c62828" if "bloomberg" in src.lower() or "wsj" in src.lower() else "#2e7d32"
+                    link_html = (
+                        f'<a href="{url}" target="_blank" rel="noopener" '
+                        f'style="color:#1a237e;text-decoration:none;font-weight:600;'
+                        f'font-size:.86rem;line-height:1.35">{ttl}</a>'
+                        if url else
+                        f'<span style="font-weight:600;font-size:.86rem">{ttl}</span>'
+                    )
+                    meta = []
+                    if date: meta.append(f"📅 {date}")
+                    if src:  meta.append(src)
+
+                    col.markdown(
+                        f"""<div style="background:white;border:1px solid #e8eaf6;
+                            border-left:4px solid {border_col};border-radius:10px;
+                            padding:.85rem 1rem;margin-bottom:.65rem;min-height:115px">
+                            {link_html}
+                            <div style="font-size:.73rem;color:#888;margin-top:.3rem">
+                                {" · ".join(meta)}
+                            </div>
+                            {('<div style="font-size:.78rem;color:#555;margin-top:.3rem">'
+                              + summ + ('…' if len(art.get('summary','')) > 160 else '')
+                              + '</div>') if summ else ''}
+                        </div>""",
+                        unsafe_allow_html=True,
+                    )
+                if len(articles) > 6:
+                    with container.expander(f"さらに {len(articles)-6} 件を表示"):
+                        for art in articles[6:]:
+                            ttl  = art.get("title", "")
+                            url  = art.get("url", "")
+                            src  = art.get("source", "")
+                            date = art.get("date", "")
+                            if url:
+                                st.markdown(f"🔗 [{ttl}]({url}) — {date}  *{src}*")
+                            else:
+                                st.markdown(f"📰 {ttl} — {date}  *{src}*")
+
+            if mkt_arts:
+                _news_cards(tabs[tab_idx], mkt_arts)
+                tab_idx += 1
+            if inv_arts:
+                _news_cards(tabs[tab_idx], inv_arts)
+                tab_idx += 1
+            if jp_arts:
+                _news_cards(tabs[tab_idx], jp_arts)
+
     # ── Strengths & Risks ─────────────────────────────────────────────────────
     st.markdown('<div class="section-title">⚖️ 強みとリスク</div>', unsafe_allow_html=True)
     s1, s2 = st.columns(2)
@@ -1576,17 +1664,32 @@ def main():
             loc_data["local_news"] = news_data
         except Exception:
             loc_data["local_news"] = {"articles": [], "error": "ニュース取得失敗"}
-        progress.progress(65)
+        progress.progress(60)
+
+        # 業界ニュースはセッション内でキャッシュ（毎回の物件分析で再取得しない）
+        if "industry_news" not in st.session_state:
+            status.markdown(
+                "🌐 **業界ニュースを収集中"
+                "（CNBC / Bloomberg / WSJ / NYT / Redfin / The Real Deal）…**"
+            )
+            try:
+                st.session_state.industry_news = fetcher.get_industry_news()
+            except Exception:
+                st.session_state.industry_news = {}
+        industry_news = st.session_state.get("industry_news", {})
+        progress.progress(70)
 
         status.markdown("📊 **金融市場データを取得中（FRED）…**")
         try:
             market_data = fetcher.get_market_data(state=loc_data.get("state", ""))
         except TypeError:
             market_data = fetcher.get_market_data()
-        progress.progress(75)
+        progress.progress(80)
 
         status.markdown("🤖 **Claude AIが投資分析を実行中…**")
-        analysis = analyzer.analyze_property(prop_data, loc_data, fin, market_data)
+        analysis = analyzer.analyze_property(
+            prop_data, loc_data, fin, market_data, industry_news
+        )
         progress.progress(100)
 
         status.empty()
@@ -1600,7 +1703,7 @@ def main():
         show_results(
             analysis, prop_data, loc_data, fin, usd_to_jpy,
             rent_growth, appreciation, land_pct,
-            tax_bracket, exit_cost_pct, market_data,
+            tax_bracket, exit_cost_pct, market_data, industry_news,
         )
 
         # ── Add to comparison list ─────────────────────────────────────────
