@@ -1294,6 +1294,71 @@ def show_results(
         elif hud.get("error"):
             st.caption(f"HUD FMRデータ: {hud['error']}")
 
+    # ── Local News & Development Intelligence ────────────────────────────────
+    news = loc.get("local_news", {}) if not loc.get("error") else {}
+    articles = news.get("articles", []) if news else []
+    if articles:
+        city_n  = news.get("city", "")
+        state_n = news.get("state", "")
+        pos_cnt = news.get("positive_count", 0)
+        total_n = news.get("total_found", len(articles))
+
+        st.markdown('<div class="section-title">📰 地域ニュース・開発動向</div>', unsafe_allow_html=True)
+        st.caption(
+            f"「{city_n}, {state_n}」エリアの不動産開発・投資関連ニュース "
+            f"（ポジティブ優先 {pos_cnt}件 / 取得総数 {total_n}件 ｜ "
+            f"出典: Google News / GDELT Project）"
+        )
+
+        num_show = min(len(articles), 6)
+        ncols    = min(num_show, 3)
+        if ncols > 0:
+            cols = st.columns(ncols)
+            for i, art in enumerate(articles[:num_show]):
+                col  = cols[i % ncols]
+                ttl  = art.get("title", "")
+                url  = art.get("url", "")
+                date = art.get("date", "")
+                src  = art.get("source", "")
+                summ = art.get("summary", "")[:160]
+
+                link_html = (
+                    f'<a href="{url}" target="_blank" rel="noopener" '
+                    f'style="color:#1a237e;text-decoration:none;font-weight:600;'
+                    f'font-size:.88rem;line-height:1.35">{ttl}</a>'
+                    if url else
+                    f'<span style="font-weight:600;font-size:.88rem">{ttl}</span>'
+                )
+                meta = []
+                if date: meta.append(f"📅 {date}")
+                if src:  meta.append(src)
+                meta_str = " · ".join(meta)
+
+                col.markdown(
+                    f"""<div style="background:white;border:1px solid #e8eaf6;
+                        border-left:4px solid #3949ab;border-radius:10px;
+                        padding:.9rem 1.1rem;margin-bottom:.7rem;min-height:110px">
+                        {link_html}
+                        <div style="font-size:.75rem;color:#888;margin-top:.35rem">{meta_str}</div>
+                        {('<div style="font-size:.8rem;color:#555;margin-top:.35rem">'
+                          + summ + ('…' if len(art.get('summary','')) > 160 else '')
+                          + '</div>') if summ else ''}
+                    </div>""",
+                    unsafe_allow_html=True,
+                )
+
+        if len(articles) > 6:
+            with st.expander(f"📋 さらに {len(articles) - 6} 件のニュースを表示"):
+                for art in articles[6:]:
+                    ttl = art.get("title", "")
+                    url = art.get("url", "")
+                    src = art.get("source", "")
+                    date = art.get("date", "")
+                    if url:
+                        st.markdown(f"🔗 [{ttl}]({url})&ensp;—&ensp;{date}  *{src}*")
+                    else:
+                        st.markdown(f"📰 {ttl}&ensp;—&ensp;{date}  *{src}*")
+
     # ── Strengths & Risks ─────────────────────────────────────────────────────
     st.markdown('<div class="section-title">⚖️ 強みとリスク</div>', unsafe_allow_html=True)
     s1, s2 = st.columns(2)
@@ -1493,11 +1558,25 @@ def main():
 
         status.markdown("🏠 **Zillowから物件データを取得中…**")
         prop_data = fetcher.get_property_data(address)
-        progress.progress(25)
+        progress.progress(20)
 
         status.markdown("📍 **Google Maps・Redfin・Realtor.com・各種APIで周辺環境を分析中…**")
         loc_data = fetcher.get_all_location_data(address)
-        progress.progress(55)
+        progress.progress(50)
+
+        status.markdown("📰 **地域ニュース・開発動向を収集中（Google News / GDELT）…**")
+        try:
+            _pg   = loc_data.get("population_growth", {}) or {}
+            news_data = fetcher.get_local_news(
+                city    = loc_data.get("city",    ""),
+                state   = loc_data.get("state",   ""),
+                zipcode = loc_data.get("zipcode", ""),
+                county  = _pg.get("county_name",  ""),
+            )
+            loc_data["local_news"] = news_data
+        except Exception:
+            loc_data["local_news"] = {"articles": [], "error": "ニュース取得失敗"}
+        progress.progress(65)
 
         status.markdown("📊 **金融市場データを取得中（FRED）…**")
         try:

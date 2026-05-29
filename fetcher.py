@@ -1,6 +1,9 @@
 import os
+import re
 import math
 import datetime
+import xml.etree.ElementTree as ET
+from urllib.parse import quote as _url_quote
 import requests
 from collections import Counter
 from typing import Optional
@@ -655,6 +658,206 @@ class PropertyDataFetcher:
             }
         except Exception as e:
             return {"error": f"交通データ取得失敗: {str(e)}", "car_dependent": None}
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Local News & Development Intelligence (Google News RSS + GDELT — free, no key)
+    # ──────────────────────────────────────────────────────────────────────────
+
+    # 州別の主要都市圏・広域エリアキーワード（小都市のニュース不足時に使用）
+    _STATE_METRO_NEWS = {
+        "TX": ["DFW Texas", "Dallas Fort Worth Texas", "North Texas", "Collin County Texas"],
+        "IL": ["Chicago Illinois", "Chicago suburb Illinois", "Chicagoland"],
+        "CA": ["Southern California", "Bay Area California", "Los Angeles California"],
+        "FL": ["South Florida", "Orlando Florida", "Tampa Florida"],
+        "NY": ["New York metro", "New York State"],
+        "GA": ["Atlanta Georgia metro"],
+        "WA": ["Seattle Washington metro"],
+        "CO": ["Denver Colorado metro"],
+        "AZ": ["Phoenix Arizona metro"],
+        "NC": ["Charlotte North Carolina", "Raleigh North Carolina"],
+        "TN": ["Nashville Tennessee metro"],
+        "NV": ["Las Vegas Nevada"],
+        "OH": ["Columbus Ohio", "Cleveland Ohio"],
+    }
+
+    def get_local_news(self, city: str, state: str, zipcode: str = "",
+                       county: str = "") -> dict:
+        """Google News RSS + GDELT Project から地域不動産・開発ニュースを取得
+        完全無料・APIキー不要
+
+        取得カテゴリ:
+          1. 不動産開発ニュース（新規開発・建設許可・ゾーニング変更）
+          2. 投資・雇用・経済成長ニュース
+          3. 広域エリア（郡・都市圏レベル）の市場ニュース（小都市フォールバック）
+        """
+        if not city or not state:
+            return {"articles": [], "error": "都市名・州名が必要です"}
+
+        # ① 市レベルのクエリ
+        queries = [
+            f'"{city}" {state} real estate development construction',
+            f'"{city}" {state} investment growth new jobs',
+        ]
+        # ② 郡レベル（利用可能な場合）
+        if county:
+            county_short = county.replace(" County", "").replace(" county", "")
+            queries.append(f'"{county_short}" {state} real estate development')
+
+        # ③ 都市圏・州レベルのフォールバック（小都市でニュースが少ない場合に備えて常に追加）
+        metro_kws = self._STATE_METRO_NEWS.get(state.upper(), [])
+        for mkw in metro_kws[:2]:
+            queries.append(f'{mkw} real estate development construction 2025 2026')
+        # 州レベル一般
+        queries.append(f'{state} real estate investment new development growth')
+
+        all_articles: list = []
+        for q in queries[:6]:          # 最大6クエリ
+            arts = self._fetch_google_news_rss(q, max_results=3)
+            all_articles.extend(arts)
+
+        # GDELT で補完（都市 + 州）
+        all_articles.extend(self._fetch_gdelt_news(city, state, max_results=6))
+        # GDELT 広域（フォールバック）
+        if metro_kws:
+            all_articles.extend(self._fetch_gdelt_news(metro_kws[0], state, max_results=4))
+
+        # URL（先頭80文字）で重複排除
+        seen: set = set()
+        deduped: list = []
+        for a in all_articles:
+            key = (a.get("url") or a.get("title", ""))[:80]
+            if key and key not in seen:
+                seen.add(key)
+                deduped.append(a)
+
+        # ポジティブ優先フィルタリング
+        NEG_KWS = {
+            "crime", "shooting", "murder", "robbery", "arrested", "indicted",
+            "flood", "tornado", "hurricane", "wildfire", "disaster",
+            "bankrupt", "foreclosure", "default", "layoff", "closure",
+            "decline", "scam", "fraud", "lawsuit", "corruption",
+        }
+        POS_KWS = {
+            "development", "construction", "project", "approved", "permit",
+            "investment", "growth", "expansion", "new jobs", "hiring",
+            "opening", "luxury", "mixed-use", "revitalization", "record",
+            "thriving", "booming", "infrastructure", "master plan", "corridor",
+            "billion", "million", "new homes", "new school", "new park",
+            "rezoning", "zoning", "community", "transit", "highway",
+        }
+
+        pos_arts, other_arts = [], []
+        for a in deduped:
+            text = (a.get("title", "") + " " + a.get("summary", "")).lower()
+            if any(kw in text for kw in NEG_KWS):
+                continue  # ネガティブはスキップ
+            if any(kw in text for kw in POS_KWS):
+                pos_arts.append(a)
+            else:
+                other_arts.append(a)
+
+        final = (pos_arts + other_arts)[:12]
+
+        return {
+            "articles":       final,
+            "positive_count": len(pos_arts),
+            "total_found":    len(deduped),
+            "city":           city,
+            "state":          state,
+            "source":         "Google News RSS / GDELT Project",
+        }
+
+    def _fetch_google_news_rss(self, query: str, max_results: int = 5) -> list:
+        """Google News RSS フィードから記事リストを取得（無料・APIキー不要）"""
+        url = (
+            "https://news.google.com/rss/search"
+            f"?q={_url_quote(query)}&hl=en-US&gl=US&ceid=US:en"
+        )
+        try:
+            resp = requests.get(
+                url, timeout=12,
+                headers={"User-Agent": "Mozilla/5.0 (compatible; PropertyBot/1.0)"},
+            )
+            resp.raise_for_status()
+            root    = ET.fromstring(resp.content)
+            channel = root.find("channel")
+            if channel is None:
+                return []
+
+            articles = []
+            for item in channel.findall("item")[:max_results]:
+                raw_title  = item.findtext("title", "")
+                # "Article Title - Source Name" の末尾ソース名を分離
+                parts  = raw_title.rsplit(" - ", 1)
+                title  = parts[0].strip()
+                src_sfx = parts[1].strip() if len(parts) > 1 else ""
+
+                link     = item.findtext("link", "")
+                desc_raw = item.findtext("description", "")
+                # HTMLタグ除去
+                desc = re.sub(r"<[^>]+>", " ", desc_raw).strip()[:300]
+
+                # 日付パース
+                pub_raw  = item.findtext("pubDate", "")
+                try:
+                    from email.utils import parsedate_to_datetime
+                    date_str = parsedate_to_datetime(pub_raw).strftime("%Y-%m-%d")
+                except Exception:
+                    date_str = pub_raw[:10] if pub_raw else ""
+
+                src_el = item.find("source")
+                source = (src_el.text if src_el is not None else src_sfx) or src_sfx
+
+                if title:
+                    articles.append({
+                        "title":    title,
+                        "url":      link,
+                        "date":     date_str,
+                        "source":   source,
+                        "summary":  desc,
+                        "provider": "Google News",
+                    })
+            return articles
+        except Exception:
+            return []
+
+    def _fetch_gdelt_news(self, city: str, state: str, max_results: int = 6) -> list:
+        """GDELT Project Doc 2.0 API から開発・不動産ニュースを取得（無料・APIキー不要）"""
+        query = (
+            f'"{city}" "{state}" '
+            f'(real estate OR development OR construction OR investment OR growth)'
+        )
+        url = (
+            "https://api.gdeltproject.org/api/v2/doc/doc"
+            f"?query={_url_quote(query)}&mode=artlist&maxrecords={max_results}"
+            "&format=json&sourcelang=english&sourcecountry=US"
+        )
+        try:
+            resp = requests.get(
+                url, timeout=15,
+                headers={"User-Agent": "Mozilla/5.0 (compatible; PropertyBot/1.0)"},
+            )
+            raw_list = resp.json().get("articles", [])
+            articles = []
+            for a in raw_list[:max_results]:
+                raw_date = str(a.get("seendate", ""))
+                try:
+                    date_str = f"{raw_date[:4]}-{raw_date[4:6]}-{raw_date[6:8]}"
+                except Exception:
+                    date_str = ""
+                title = (a.get("title") or "").strip()
+                if title:
+                    articles.append({
+                        "title":    title,
+                        "url":      a.get("url", ""),
+                        "date":     date_str,
+                        "source":   a.get("domain", ""),
+                        "summary":  "",
+                        "provider": "GDELT",
+                    })
+            return articles
+        except Exception:
+            return []
 
     def get_fred_rental_vacancy(self, state: str = "") -> dict:
         """FRED API からテキサス州・全米の賃貸空室率を取得"""

@@ -42,9 +42,10 @@ class PropertyAnalyzer:
 
     def _build_prompt(self, prop: dict, loc: dict, fin: dict, mkt: dict = None) -> str:
         prop_section = self._fmt_property(prop)
-        loc_section = self._fmt_location(loc)
-        fin_section = self._fmt_financials(fin)
-        mkt_section = self._fmt_market(mkt or {})
+        loc_section  = self._fmt_location(loc)
+        fin_section  = self._fmt_financials(fin)
+        mkt_section  = self._fmt_market(mkt or {})
+        news_section = self._fmt_news(loc)
 
         return f"""以下のアメリカ不動産物件を日本人投資家の視点から詳細に分析してください。
 
@@ -59,6 +60,9 @@ class PropertyAnalyzer:
 
 ━━━ マーケットデータ ━━━
 {mkt_section}
+
+━━━ 地域ニュース・開発動向 ━━━
+{news_section}
 
 ━━━ 出力形式 ━━━
 以下のJSONのみを返してください（余分なテキスト不要）:
@@ -99,6 +103,7 @@ class PropertyAnalyzer:
 3. GRMの評価基準（Gross Rent Multiplier）: テキサス州DFW市場の単家族住宅における典型的なGRM相場は10〜14倍です（全米平均は12〜18倍）。GRMが低いほど賃料対価格比が優れているため、GRM10〜12倍はDFW市場では「良好」な投資効率です。比較対象がないとは評価しないでください。
 4. 複数ソース価格比較: Zillow・Redfin・Realtor.com・Collin CAD評価額が提供されている場合は、それらを比較して購入価格の妥当性を多角的に評価してください。
 5. 賃貸需要・空室率の評価: Census ACS空室率データやFREDの賃貸空室率データが提供されている場合、それを根拠として賃貸需要を具体的に評価してください。テキサス州の賃貸空室率データが示す通り、エリアの具体的な数値を使用してください。
+6. 地域ニュース・開発動向の活用: 「地域ニュース・開発動向」セクションに記事が含まれる場合、それらの主要なポイントを日本語に要約して「市場見通し（market_outlook）」と「総合評価（overall_comment）」に反映してください。新規開発プロジェクト・インフラ整備・雇用創出・ゾーニング変更などのポジティブ情報はエリアの成長性評価に活用してください。記事が英語の場合は内容を把握して日本語で記述してください。
 """
 
     def _fmt_property(self, prop: dict) -> str:
@@ -355,6 +360,38 @@ class PropertyAnalyzer:
             dom_str   = f"{dom}日" if dom is not None else "N/A"
             ppsf_str  = f"${ppsf:,}/sqft" if ppsf else "N/A"
             lines.append(f"- Realtor.com価格情報: {price_str} / $/sqft: {ppsf_str} / 市場掲載日数: {dom_str} / ステータス: {realtor.get('status','N/A')}")
+
+        return "\n".join(lines)
+
+    def _fmt_news(self, loc: dict) -> str:
+        """地域ニュース・開発動向をAIプロンプト用にフォーマット"""
+        news = loc.get("local_news", {})
+        if not news or news.get("error") or not news.get("articles"):
+            return "地域ニュースデータなし（Google News / GDELT 未取得 or 該当なし）"
+
+        articles = news.get("articles", [])
+        city     = news.get("city", "")
+        state    = news.get("state", "")
+        pos_cnt  = news.get("positive_count", 0)
+        total    = news.get("total_found", len(articles))
+
+        lines = [
+            f"【{city}, {state} 最新不動産・開発ニュース】",
+            f"取得 {total}件 / ポジティブ {pos_cnt}件（Google News RSS + GDELT Project）",
+            "※ 記事は英語。内容を把握して日本語で市場見通しに反映してください。",
+            "",
+        ]
+        for i, a in enumerate(articles[:8], 1):
+            title   = a.get("title", "")
+            date    = a.get("date", "")
+            source  = a.get("source", "")
+            summary = a.get("summary", "")
+            line = f"{i}. [{date}] {title}"
+            if source:
+                line += f"  ({source})"
+            if summary:
+                line += f"\n   → {summary[:200]}"
+            lines.append(line)
 
         return "\n".join(lines)
 
