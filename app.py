@@ -41,14 +41,50 @@ html, body, [class*="css"], .stApp {
 section[data-testid="stSidebar"] {
     background: #ffffff !important;
     border-right: 1px solid #e5e7eb !important;
-    box-shadow: 2px 0 8px rgba(0,0,0,.04);
+    box-shadow: 3px 0 16px rgba(0,0,0,.06);
 }
+
+/* Section headers with blue accent bar */
 section[data-testid="stSidebar"] h3 {
-    color: #374151 !important; font-weight: 700 !important;
-    font-size: .72rem !important; text-transform: uppercase !important;
-    letter-spacing: .1rem !important;
+    display: flex !important; align-items: center !important; gap: .5rem !important;
+    color: #111827 !important; font-weight: 800 !important;
+    font-size: .62rem !important; text-transform: uppercase !important;
+    letter-spacing: .16rem !important;
+    padding: .1rem 0 .55rem !important;
+    border-bottom: 1px solid #f3f4f6 !important;
+    margin-bottom: 1rem !important;
 }
-section[data-testid="stSidebar"] strong { color: #1f2937 !important; }
+section[data-testid="stSidebar"] h3::before {
+    content: '';
+    display: inline-block; flex-shrink: 0;
+    width: 3px; height: 12px;
+    background: #2563eb; border-radius: 2px;
+}
+
+/* Labels, text, dividers */
+section[data-testid="stSidebar"] label {
+    font-size: .78rem !important; font-weight: 500 !important;
+    color: #374151 !important;
+}
+section[data-testid="stSidebar"] p {
+    font-size: .8rem !important; color: #374151 !important; line-height: 1.65 !important;
+}
+section[data-testid="stSidebar"] strong { color: #111827 !important; }
+section[data-testid="stSidebar"] hr {
+    border-color: #f3f4f6 !important; margin: 1.1rem 0 !important;
+}
+
+/* Slider value bubbles */
+section[data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stThumbValue"] {
+    font-weight: 700 !important; font-size: .72rem !important;
+    color: #2563eb !important;
+}
+
+/* Number input in sidebar */
+section[data-testid="stSidebar"] [data-testid="stNumberInput"] input {
+    font-size: .95rem !important; font-weight: 600 !important;
+    color: #111827 !important;
+}
 
 /* ─── Header — Dark Navy on Light Page ─── */
 .main-header {
@@ -1671,7 +1707,29 @@ def main():
 
     # ── Sidebar ───────────────────────────────────────────────────────────────
     with st.sidebar:
-        st.markdown("### ⚙️ 基本設定")
+
+        # ── Branded mini-header ───────────────────────────────────────────────
+        st.markdown("""
+        <div style="margin:-1rem -1rem 1.6rem;padding:1.5rem 1.2rem 1.3rem;
+                    background:linear-gradient(160deg,#0f172a 0%,#1e3a5f 75%,#1e40af 100%);
+                    text-align:center;border-bottom:1px solid rgba(255,255,255,.08);">
+            <div style="font-size:.52rem;letter-spacing:.28rem;color:#93c5fd;
+                        text-transform:uppercase;font-weight:700;margin-bottom:.45rem;">
+                Property Analytics
+            </div>
+            <div style="font-size:1.05rem;font-weight:900;color:#ffffff;
+                        letter-spacing:-.2px;line-height:1.15;">
+                AI不動産投資
+            </div>
+            <div style="font-size:.58rem;color:rgba(255,255,255,.38);
+                        margin-top:.35rem;letter-spacing:.06rem;">
+                Japan → USA
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ── 基本設定 ──────────────────────────────────────────────────────────
+        st.markdown("### 基本設定")
         usd_to_jpy = st.number_input("USD/JPY レート", 100.0, 200.0, 150.0, 0.5)
         expense_ratio = st.slider(
             "運営経費率 (%)", 25, 55, 40,
@@ -1681,8 +1739,11 @@ def main():
             "諸費用率 (%)", 1, 6, 3,
             help="購入価格に対する諸費用（タイトル保険・ローン手数料・登記等）",
         )
+
         st.divider()
-        st.markdown("### 📈 シミュレーション設定")
+
+        # ── シミュレーション設定 ──────────────────────────────────────────────
+        st.markdown("### シミュレーション設定")
         rent_growth = st.slider(
             "賃料上昇率 (%/年)", 0.0, 8.0, 3.0, 0.5,
             help="10年シミュレーションで使用する年間賃料上昇率",
@@ -1695,8 +1756,11 @@ def main():
             "土地割合 (%)", 10, 40, 20, 5,
             help="物件価格に占める土地の割合（減価償却計算に使用 — 土地は償却不可）",
         )
+
         st.divider()
-        st.markdown("### 💡 高度指標設定")
+
+        # ── 高度指標設定 ──────────────────────────────────────────────────────
+        st.markdown("### 高度指標設定")
         tax_bracket = st.slider(
             "適用税率 (%)", 10, 45, 25, 5,
             help="税引後CFの計算に使用する所得税率（連邦＋州の合計目安）",
@@ -1705,26 +1769,90 @@ def main():
             "出口コスト率 (%)", 3.0, 10.0, 6.0, 0.5,
             help="10年後売却時の仲介手数料・諸費用（IRR計算用）",
         )
+
         st.divider()
+
+        # ── 指標の目安テーブル ────────────────────────────────────────────────
         st.markdown("""
-**📊 指標の目安**
-| 指標 | 優良 | 標準 | 要注意 |
-|---|---|---|---|
-| Cap Rate | ≥6% | 4-6% | <4% |
-| CoC Return | ≥8% | 4-8% | <4% |
-| DSCR | ≥1.5 | 1.25-1.5 | <1.25 |
-| IRR | ≥12% | 8-12% | <8% |
-| 1%ルール | ≥1% | — | <1% |
-        """)
+        <div style="margin-bottom:.8rem;">
+            <div style="font-size:.58rem;font-weight:800;color:#111827;
+                        text-transform:uppercase;letter-spacing:.15rem;
+                        padding-bottom:.4rem;border-bottom:1px solid #f3f4f6;
+                        margin-bottom:.7rem;display:flex;align-items:center;gap:.45rem;">
+                <span style="width:3px;height:11px;background:#2563eb;
+                             border-radius:2px;display:inline-block;flex-shrink:0;"></span>
+                指標の目安
+            </div>
+            <table style="width:100%;border-collapse:collapse;font-size:.68rem;">
+                <thead>
+                    <tr>
+                        <th style="text-align:left;padding:.3rem .4rem;color:#9ca3af;
+                                   font-weight:600;font-size:.6rem;text-transform:uppercase;
+                                   letter-spacing:.06rem;border-bottom:1px solid #f3f4f6;">
+                            指標
+                        </th>
+                        <th style="padding:.3rem .4rem;color:#059669;font-weight:700;
+                                   font-size:.6rem;border-bottom:1px solid #f3f4f6;">優良</th>
+                        <th style="padding:.3rem .4rem;color:#d97706;font-weight:700;
+                                   font-size:.6rem;border-bottom:1px solid #f3f4f6;">標準</th>
+                        <th style="padding:.3rem .4rem;color:#dc2626;font-weight:700;
+                                   font-size:.6rem;border-bottom:1px solid #f3f4f6;">注意</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td style="padding:.28rem .4rem;color:#374151;border-bottom:1px solid #f9fafb;">Cap Rate</td><td style="padding:.28rem .4rem;color:#059669;font-weight:600;text-align:center;">≥6%</td><td style="padding:.28rem .4rem;color:#d97706;text-align:center;">4–6%</td><td style="padding:.28rem .4rem;color:#dc2626;text-align:center;">&lt;4%</td></tr>
+                    <tr><td style="padding:.28rem .4rem;color:#374151;border-bottom:1px solid #f9fafb;">CoC Return</td><td style="padding:.28rem .4rem;color:#059669;font-weight:600;text-align:center;">≥8%</td><td style="padding:.28rem .4rem;color:#d97706;text-align:center;">4–8%</td><td style="padding:.28rem .4rem;color:#dc2626;text-align:center;">&lt;4%</td></tr>
+                    <tr><td style="padding:.28rem .4rem;color:#374151;border-bottom:1px solid #f9fafb;">DSCR</td><td style="padding:.28rem .4rem;color:#059669;font-weight:600;text-align:center;">≥1.5</td><td style="padding:.28rem .4rem;color:#d97706;text-align:center;">1.25–</td><td style="padding:.28rem .4rem;color:#dc2626;text-align:center;">&lt;1.25</td></tr>
+                    <tr><td style="padding:.28rem .4rem;color:#374151;border-bottom:1px solid #f9fafb;">IRR</td><td style="padding:.28rem .4rem;color:#059669;font-weight:600;text-align:center;">≥12%</td><td style="padding:.28rem .4rem;color:#d97706;text-align:center;">8–12%</td><td style="padding:.28rem .4rem;color:#dc2626;text-align:center;">&lt;8%</td></tr>
+                    <tr><td style="padding:.28rem .4rem;color:#374151;">1%ルール</td><td style="padding:.28rem .4rem;color:#059669;font-weight:600;text-align:center;">≥1%</td><td style="padding:.28rem .4rem;color:#9ca3af;text-align:center;">—</td><td style="padding:.28rem .4rem;color:#dc2626;text-align:center;">&lt;1%</td></tr>
+                </tbody>
+            </table>
+        </div>
+        """, unsafe_allow_html=True)
+
         st.divider()
-        st.markdown("**🔑 API 設定確認**")
-        st.markdown(f"Zillow (RapidAPI): {'✅' if os.getenv('RAPIDAPI_KEY') else '❌ 未設定'}")
-        st.markdown(f"Google Maps:       {'✅' if os.getenv('GOOGLE_MAPS_API_KEY') else '❌ 未設定'}")
-        st.markdown(f"Anthropic Claude:  {'✅' if os.getenv('ANTHROPIC_API_KEY') else '❌ 未設定'}")
-        st.markdown(f"FRED (金利):       {'✅' if os.getenv('FRED_API_KEY') else '⚪ 未設定'}")
-        st.markdown(f"Census (統計):     {'✅' if os.getenv('CENSUS_API_KEY') else '⚪ 未設定'}")
-        st.markdown(f"HUD (FMR):         {'✅' if os.getenv('HUD_API_TOKEN') else '⚪ 未設定'}")
-        st.markdown(f"Walk Score:        {'✅' if os.getenv('WALKSCORE_API_KEY') else '⚪ 未設定'}")
+
+        # ── API 接続状態 ──────────────────────────────────────────────────────
+        st.markdown("""
+        <div style="font-size:.58rem;font-weight:800;color:#111827;
+                    text-transform:uppercase;letter-spacing:.15rem;
+                    padding-bottom:.4rem;border-bottom:1px solid #f3f4f6;
+                    margin-bottom:.7rem;display:flex;align-items:center;gap:.45rem;">
+            <span style="width:3px;height:11px;background:#2563eb;
+                         border-radius:2px;display:inline-block;flex-shrink:0;"></span>
+            API 接続状態
+        </div>
+        """, unsafe_allow_html=True)
+
+        _api_list = [
+            ("Zillow",       os.getenv("RAPIDAPI_KEY"),          True),
+            ("Google Maps",  os.getenv("GOOGLE_MAPS_API_KEY"),   True),
+            ("Claude AI",    os.getenv("ANTHROPIC_API_KEY"),     True),
+            ("FRED",         os.getenv("FRED_API_KEY"),          False),
+            ("Census",       os.getenv("CENSUS_API_KEY"),        False),
+            ("HUD FMR",      os.getenv("HUD_API_TOKEN"),         False),
+            ("Walk Score",   os.getenv("WALKSCORE_API_KEY"),     False),
+        ]
+        api_rows = ""
+        for name, val, required in _api_list:
+            ok   = bool(val)
+            dot  = "#059669" if ok else ("#ef4444" if required else "#d1d5db")
+            txt  = "#059669" if ok else ("#ef4444" if required else "#9ca3af")
+            stat = "接続済"  if ok else ("必須" if required else "任意")
+            api_rows += f"""
+            <div style="display:flex;justify-content:space-between;align-items:center;
+                        padding:.32rem .5rem;margin-bottom:.2rem;border-radius:6px;
+                        background:{'#f0fdf4' if ok else '#f9fafb'};">
+                <span style="font-size:.74rem;font-weight:500;color:#374151;">{name}</span>
+                <span style="font-size:.68rem;font-weight:700;color:{txt};
+                             display:flex;align-items:center;gap:.25rem;">
+                    <span style="width:6px;height:6px;border-radius:50%;
+                                 background:{dot};display:inline-block;"></span>
+                    {stat}
+                </span>
+            </div>"""
+        st.markdown(f'<div style="margin-bottom:.5rem;">{api_rows}</div>',
+                    unsafe_allow_html=True)
 
     # ── Comparison list (always visible at top) ───────────────────────────────
     if st.session_state.comparison_list:
