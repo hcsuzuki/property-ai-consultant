@@ -21,178 +21,230 @@ st.set_page_config(
 # ──────────────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-/* ════════════════════════════════════════════════════════════
-   AI不動産投資コンサルタント  ·  Texas Sky / Modern Pro UI
-   ════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════
+   PROPERTY AI CONSULTANT  —  2025 Modern PropTech Dashboard
+   Design: dark header · clean white cards · Inter · Tailwind-inspired
+   ═══════════════════════════════════════════════════════════════════ */
 
-/* ─── App Background ─── */
-[data-testid="stAppViewContainer"] { background: #f0f6ff !important; }
-[data-testid="stHeader"]           { background: transparent !important; }
-section[data-testid="stSidebar"]   {
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+/* ─── Font Reset ─── */
+html, body, [class*="css"], .stApp { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important; }
+
+/* ─── Page ─── */
+[data-testid="stAppViewContainer"] { background: #f1f5f9 !important; }
+[data-testid="stHeader"] { display: none !important; }
+.main .block-container { padding-top: 1.2rem !important; padding-bottom: 3rem !important; }
+
+/* ─── Sidebar ─── */
+section[data-testid="stSidebar"] {
     background: #ffffff !important;
-    border-right: 1px solid #dde5f0;
+    border-right: 1px solid #e2e8f0 !important;
+    box-shadow: 4px 0 20px rgba(0,0,0,.04);
 }
 
-/* ─── Main Header ─── */
+/* ─── Main Header (Dark Prestige) ─── */
 .main-header {
     text-align: center;
-    padding: 3rem 2rem 2.8rem;
-    background: linear-gradient(135deg,
-        #062a45 0%, #0a4272 22%, #0369a1 52%, #0284c7 72%, #0ea5e9 88%, #38bdf8 100%);
+    padding: 3.8rem 2.5rem 3.5rem;
+    background: #0f172a;
     color: white;
-    border-radius: 22px;
-    margin-bottom: 2.4rem;
-    box-shadow: 0 4px 8px rgba(0,0,0,.08), 0 24px 60px rgba(2,132,199,.22);
+    border-radius: 20px;
+    margin-bottom: 2.5rem;
     position: relative; overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.06);
 }
+/* Blue-to-teal gradient overlay */
 .main-header::before {
     content: '';
-    position: absolute; top: -70px; left: 28%;
-    width: 340px; height: 340px;
-    background: radial-gradient(circle, rgba(255,255,255,.09) 0%, transparent 68%);
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg,
+        rgba(37,99,235,.4) 0%, rgba(14,165,233,.25) 50%, rgba(16,185,129,.15) 100%);
     pointer-events: none;
 }
+/* Dot-grid texture */
 .main-header::after {
     content: '';
-    position: absolute; bottom: -55px; right: 6%;
-    width: 260px; height: 260px;
-    background: radial-gradient(circle, rgba(255,255,255,.07) 0%, transparent 68%);
+    position: absolute; inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,.08) 1px, transparent 1px);
+    background-size: 26px 26px;
     pointer-events: none;
 }
-.main-header h1 {
-    font-size: 2.4rem; font-weight: 800;
-    margin-bottom: .55rem; letter-spacing: -.4px;
-    text-shadow: 0 2px 18px rgba(0,0,0,.18);
+/* Right glow orb */
+.main-header .orb {
+    position: absolute; top: -25%; right: 8%;
+    width: 420px; height: 420px;
+    background: radial-gradient(circle, rgba(37,99,235,.35) 0%, transparent 62%);
+    pointer-events: none;
 }
-.main-header p { font-size: .97rem; opacity: .93; margin: 0; }
+.main-header .badge {
+    display: inline-flex; align-items: center; gap: .35rem;
+    background: rgba(37,99,235,.25);
+    border: 1px solid rgba(96,165,250,.4);
+    border-radius: 100px;
+    padding: .28rem .9rem;
+    font-size: .7rem; font-weight: 700;
+    letter-spacing: .12rem; text-transform: uppercase;
+    color: #93c5fd; margin-bottom: .9rem;
+    position: relative; z-index: 1;
+}
+.main-header h1 {
+    font-size: 2.5rem; font-weight: 900;
+    margin-bottom: .5rem; letter-spacing: -.6px;
+    position: relative; z-index: 1;
+    background: linear-gradient(95deg, #ffffff 0%, #bfdbfe 60%, #a5f3fc 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.main-header .sub { font-size: .97rem; opacity: .8; margin: 0; position: relative; z-index: 1; }
+.main-header .powered { font-size: .72rem; opacity: .45; margin-top: .6rem; letter-spacing: .04rem; position: relative; z-index: 1; }
 
 /* ─── Section Titles ─── */
 .section-title {
-    font-size: 1.1rem; font-weight: 700; color: #0c172a;
-    border-left: 4px solid #0ea5e9; padding-left: 1rem;
-    margin: 2.6rem 0 1.2rem;
+    font-size: 1rem; font-weight: 700; color: #0f172a;
+    margin: 2.8rem 0 1.2rem;
+    display: flex; align-items: center; gap: .6rem;
+    padding-bottom: .7rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+.section-title::before {
+    content: '';
+    flex-shrink: 0; width: 3px; height: 17px;
+    background: linear-gradient(180deg, #2563eb 0%, #0ea5e9 100%);
+    border-radius: 2px;
 }
 
 /* ─── Cards ─── */
 .card {
     background: #ffffff;
-    border-radius: 18px;
-    padding: 1.5rem 1.75rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,.05), 0 6px 22px rgba(0,0,0,.07);
-    border: 1px solid #dde5f0;
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 2px 8px rgba(0,0,0,.05);
     margin-bottom: 1rem; height: 100%;
     word-wrap: break-word; overflow-wrap: break-word; overflow: hidden;
 }
 .card h4 {
-    color: #0c172a;
-    border-bottom: 2px solid #f0f4f8;
-    padding-bottom: .55rem; margin-bottom: 1rem;
-    font-size: .98rem; font-weight: 700;
+    color: #0f172a; font-size: .88rem; font-weight: 700;
+    margin-bottom: .85rem; padding-bottom: .55rem;
+    border-bottom: 1px solid #f1f5f9;
+    text-transform: uppercase; letter-spacing: .04rem;
 }
 
 /* ─── Data Rows ─── */
 .row {
     display: flex; justify-content: space-between; align-items: center;
-    padding: .43rem 0; border-bottom: 1px solid #f8fafc;
+    padding: .48rem 0; border-bottom: 1px solid #f8fafc;
 }
 .row:last-child { border-bottom: none; }
-.row-label { color: #5a6a80; font-size: .87rem; }
-.row-value { font-weight: 600; color: #0c172a; font-size: .91rem; }
+.row-label { color: #64748b; font-size: .84rem; font-weight: 400; }
+.row-value { font-weight: 600; color: #0f172a; font-size: .88rem; }
 
-/* ─── Recommendation Cards ─── */
+/* ─── Recommendation Card ─── */
 .rec-card {
-    padding: 1.7rem 2rem; border-radius: 18px;
-    border-left: 6px solid; margin-bottom: 1.5rem;
+    padding: 1.7rem 2rem; border-radius: 12px;
+    border: 1px solid #e2e8f0; border-left: 4px solid;
     background: #ffffff;
-    box-shadow: 0 2px 8px rgba(0,0,0,.07), 0 10px 28px rgba(0,0,0,.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.04);
+    margin-bottom: 1.5rem;
     word-wrap: break-word; overflow-wrap: break-word; overflow: hidden;
 }
-.rec-hold  { border-color: #10b981; background: linear-gradient(to right, #ecfdf5 0%, #ffffff 55%); }
-.rec-sell  { border-color: #f59e0b; background: linear-gradient(to right, #fffbeb 0%, #ffffff 55%); }
-.rec-check { border-color: #0ea5e9; background: linear-gradient(to right, #f0f9ff 0%, #ffffff 55%); }
+.rec-hold  { border-left-color: #10b981 !important; background: linear-gradient(to right, #f0fdf4 0%, #fff 50%) !important; }
+.rec-sell  { border-left-color: #f59e0b !important; background: linear-gradient(to right, #fefce8 0%, #fff 50%) !important; }
+.rec-check { border-left-color: #2563eb !important; background: linear-gradient(to right, #eff6ff 0%, #fff 50%) !important; }
 
 /* ─── Tags ─── */
 .tag-good {
-    background: linear-gradient(135deg, #ecfdf5, #d1fae5);
-    color: #064e3b; padding: .46rem .9rem;
-    border-radius: 10px; margin-bottom: .5rem;
-    font-size: .87rem; display: block;
-    border-left: 3px solid #22c55e;
+    background: #f0fdf4; color: #166534;
+    padding: .38rem .85rem; border-radius: 6px;
+    margin-bottom: .4rem; font-size: .84rem; display: block;
+    border: 1px solid #bbf7d0; font-weight: 500;
 }
 .tag-risk {
-    background: linear-gradient(135deg, #fff7ed, #ffedd5);
-    color: #7c2d12; padding: .46rem .9rem;
-    border-radius: 10px; margin-bottom: .5rem;
-    font-size: .87rem; display: block;
-    border-left: 3px solid #fb923c;
+    background: #fff7ed; color: #9a3412;
+    padding: .38rem .85rem; border-radius: 6px;
+    margin-bottom: .4rem; font-size: .84rem; display: block;
+    border: 1px solid #fed7aa; font-weight: 500;
 }
 
 /* ─── Disclaimer ─── */
 .disclaimer {
-    font-size: .77rem; color: #8a9ab5;
-    padding: 1.5rem 2rem;
-    background: #f8fafc; border: 1px solid #dde5f0;
-    border-radius: 14px; margin-top: 3rem; line-height: 1.9;
+    font-size: .74rem; color: #94a3b8;
+    padding: 1.2rem 1.6rem;
+    background: #f8fafc; border: 1px solid #e2e8f0;
+    border-radius: 10px; margin-top: 3rem; line-height: 1.9;
 }
 
 /* ─── Expanders ─── */
 div[data-testid="stExpander"] {
-    border: 1px solid #dde5f0 !important;
-    border-radius: 14px !important;
-    margin-bottom: .55rem;
-    overflow: hidden;
-    background: white;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+    margin-bottom: .4rem !important;
+    background: white !important; overflow: hidden !important;
 }
 
 /* ─── Tabs ─── */
 .stTabs [data-baseweb="tab-list"] {
-    gap: 4px; background: #edf2f8;
-    border-radius: 14px; padding: 5px;
+    background: #f1f5f9; border-radius: 10px; padding: 3px; gap: 2px;
 }
 .stTabs [data-baseweb="tab"] {
-    border-radius: 10px;
-    font-weight: 600 !important;
-    font-size: .87rem !important;
+    border-radius: 7px; font-weight: 600 !important; font-size: .83rem !important;
+    color: #64748b !important;
 }
 .stTabs [aria-selected="true"] {
-    background: #ffffff !important;
-    box-shadow: 0 1px 5px rgba(0,0,0,.12) !important;
-    color: #0284c7 !important;
+    background: #ffffff !important; color: #0f172a !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,.12) !important;
 }
 
 /* ─── Metrics ─── */
 div[data-testid="stMetric"] {
-    background: white;
-    border-radius: 14px;
-    padding: .9rem 1.15rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,.05), 0 4px 14px rgba(0,0,0,.06);
-    border: 1px solid #dde5f0;
+    background: white !important; border-radius: 12px !important;
+    padding: 1rem 1.2rem !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 2px 8px rgba(0,0,0,.04) !important;
 }
-div[data-testid="stMetricLabel"]  { color: #5a6a80 !important; font-size: .82rem !important; }
-div[data-testid="stMetricValue"]  { font-weight: 700 !important; color: #0c172a !important; }
+div[data-testid="stMetricLabel"] { font-size: .77rem !important; color: #64748b !important; font-weight: 500 !important; text-transform: uppercase !important; letter-spacing: .04rem !important; }
+div[data-testid="stMetricValue"] { font-size: 1.55rem !important; font-weight: 700 !important; color: #0f172a !important; }
+div[data-testid="stMetricDelta"] { font-size: .77rem !important; font-weight: 600 !important; }
 
-/* ─── Sidebar Typography ─── */
-section[data-testid="stSidebar"] h3 { color: #0284c7 !important; font-weight: 700; }
+/* ─── Sidebar ─── */
+section[data-testid="stSidebar"] h3 { color: #1e293b !important; font-weight: 700 !important; font-size: .82rem !important; text-transform: uppercase !important; letter-spacing: .06rem !important; }
 
-/* ─── Form & Submit ─── */
+/* ─── Form ─── */
 div[data-testid="stForm"] {
-    background: white; border-radius: 18px;
-    padding: 1.5rem; border: 1px solid #dde5f0;
-    box-shadow: 0 2px 12px rgba(0,0,0,.05);
+    background: white; border-radius: 14px;
+    padding: 1.5rem !important; border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 12px rgba(0,0,0,.04);
 }
 div.stFormSubmitButton > button {
-    background: linear-gradient(135deg, #0369a1 0%, #0ea5e9 100%) !important;
+    background: #1d4ed8 !important;
     color: white !important; border: none !important;
-    border-radius: 12px !important; font-weight: 700 !important;
-    font-size: 1rem !important;
-    box-shadow: 0 4px 16px rgba(14,165,233,.38) !important;
+    border-radius: 8px !important; font-weight: 700 !important;
+    font-size: .95rem !important; letter-spacing: .02rem !important;
+    box-shadow: 0 1px 2px rgba(29,78,216,.3), 0 6px 20px rgba(29,78,216,.22) !important;
+    width: 100% !important;
 }
 
-/* ─── Alerts ─── */
-div.stAlert { border-radius: 12px !important; }
+/* ─── Progress ─── */
+div[data-testid="stProgress"] > div { border-radius: 100px !important; }
+div[data-testid="stProgress"] > div > div { background: #e2e8f0 !important; }
+div[data-testid="stProgress"] > div > div > div {
+    background: linear-gradient(90deg, #2563eb, #0ea5e9) !important;
+    border-radius: 100px !important;
+}
 
-/* ─── Dataframe ─── */
-div[data-testid="stDataFrame"] { border-radius: 12px; overflow: hidden; }
+/* ─── Alerts & Info ─── */
+div.stAlert { border-radius: 10px !important; }
+div[data-testid="stInfo"] { border-radius: 10px !important; }
+
+/* ─── Dividers ─── */
+hr { border-color: #e2e8f0 !important; opacity: 1 !important; margin: 1.5rem 0 !important; }
+
+/* ─── Dataframes ─── */
+div[data-testid="stDataFrame"] { border-radius: 10px !important; overflow: hidden !important; border: 1px solid #e2e8f0 !important; }
+
+/* ─── Radio / Inputs ─── */
+div[data-testid="stRadio"] > label > span { font-weight: 600 !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -909,7 +961,7 @@ def show_results(
             for label, val in prop_rows:
                 if val in ("N/A", ""):
                     if label == "――――":
-                        html += '<div style="border-top:1px solid #e8eaf6;margin:.4rem 0"></div>'
+                        html += '<div style="border-top:1px solid #e2e8f0;margin:.4rem 0"></div>'
                     continue
                 html += (f'<div class="row"><span class="row-label">{label}</span>'
                          f'<span class="row-value">{val}</span></div>')
@@ -990,7 +1042,7 @@ def show_results(
                 price  = src["price"]
                 is_ref = (i == 0)  # 購入価格が基準
                 html   = f'<div class="card" style="text-align:center">'
-                html  += f'<div style="font-size:.82rem;font-weight:600;color:#555;margin-bottom:.4rem">{lbl}</div>'
+                html  += f'<div style="font-size:.82rem;font-weight:600;color:#475569;margin-bottom:.4rem">{lbl}</div>'
                 if price:
                     if is_ref:
                         html += f'<div style="font-size:1.4rem;font-weight:700;color:{src["color"]}">${price:,.0f}</div>'
@@ -1002,13 +1054,13 @@ def show_results(
                         html += f'<div style="font-size:1.4rem;font-weight:700;color:{src["color"]}">${price:,.0f}</div>'
                         html += f'<div style="font-size:.8rem;color:{d_color};margin-top:.2rem">{d_arrow} {diff:+,.0f} ({diff_pct:+.1f}%)</div>'
                 else:
-                    html += '<div style="color:#aaa;font-size:.9rem;margin-top:.4rem">データなし</div>'
+                    html += '<div style="color:#94a3b8;font-size:.9rem;margin-top:.4rem">データなし</div>'
                 if src["dom"] is not None:
-                    html += f'<div style="font-size:.78rem;color:#777;margin-top:.4rem">📅 市場掲載 {src["dom"]}日</div>'
+                    html += f'<div style="font-size:.78rem;color:#64748b;margin-top:.4rem">📅 市場掲載 {src["dom"]}日</div>'
                 if src["ppsf"]:
                     html += f'<div style="font-size:.78rem;color:#777">📐 ${src["ppsf"]:,.0f}/sqft</div>'
                 if src["status"] and not is_ref:
-                    html += f'<div style="font-size:.75rem;color:#aaa;margin-top:.2rem">{src["status"]}</div>'
+                    html += f'<div style="font-size:.75rem;color:#94a3b8;margin-top:.2rem">{src["status"]}</div>'
                 html += '</div>'
                 st.markdown(html, unsafe_allow_html=True)
 
@@ -1029,14 +1081,14 @@ def show_results(
                         padding:1rem 1.4rem;margin-bottom:1rem;display:flex;gap:2rem;align-items:center;
                         box-shadow:0 2px 8px rgba(14,165,233,.1)">
                 <div><span style="font-size:1.5rem;font-weight:700;color:{w_color}">{ws}</span>
-                     <span style="font-size:.82rem;color:#555;margin-left:.3rem">Walk Score<br>{walk.get("walk_desc","")}</span></div>
+                     <span style="font-size:.82rem;color:#475569;margin-left:.3rem">Walk Score<br>{walk.get("walk_desc","")}</span></div>
             """
             if ts is not None:
                 t_color = "#059669" if ts >= 70 else "#f97316" if ts >= 50 else "#dc2626"
-                walk_html += f'<div><span style="font-size:1.5rem;font-weight:700;color:{t_color}">{ts}</span><span style="font-size:.82rem;color:#555;margin-left:.3rem">Transit Score<br>{walk.get("transit_desc","")}</span></div>'
+                walk_html += f'<div><span style="font-size:1.5rem;font-weight:700;color:{t_color}">{ts}</span><span style="font-size:.82rem;color:#475569;margin-left:.3rem">Transit Score<br>{walk.get("transit_desc","")}</span></div>'
             if bs is not None:
                 b_color = "#059669" if bs >= 70 else "#f97316" if bs >= 50 else "#dc2626"
-                walk_html += f'<div><span style="font-size:1.5rem;font-weight:700;color:{b_color}">{bs}</span><span style="font-size:.82rem;color:#555;margin-left:.3rem">Bike Score<br>{walk.get("bike_desc","")}</span></div>'
+                walk_html += f'<div><span style="font-size:1.5rem;font-weight:700;color:{b_color}">{bs}</span><span style="font-size:.82rem;color:#475569;margin-left:.3rem">Bike Score<br>{walk.get("bike_desc","")}</span></div>'
             walk_html += "</div>"
             st.markdown(walk_html, unsafe_allow_html=True)
 
@@ -1053,7 +1105,7 @@ def show_results(
                     {ficon} 洪水リスク: ゾーン {flood.get('zone','X')} ― {flood.get('description','')}
                 </span>
                 {'<span style="font-size:.82rem;color:#b71c1c;margin-left:.8rem">⚠️ 洪水保険への加入が必須です（SFHA指定エリア）</span>' if flood.get('insurance_required') else ''}
-                <span style="font-size:.78rem;color:#888;margin-left:.8rem">出典: FEMA NFHL</span>
+                <span style="font-size:.78rem;color:#64748b;margin-left:.8rem">出典: FEMA NFHL</span>
             </div>
             """, unsafe_allow_html=True)
 
@@ -1115,7 +1167,7 @@ def show_results(
                 h += (f'<div class="row"><span class="row-label">{s["name"]}'
                       f'<span style="font-size:.75rem;color:#888"> {s.get("grades","")}</span></span>'
                       f'<span class="row-value" style="color:{s_color}">{star_str}{rank_str}</span></div>')
-            h += '<div style="font-size:.75rem;color:#aaa;margin-top:.4rem">出典: SchoolDigger.com</div></div>'
+            h += '<div style="font-size:.75rem;color:#94a3b8;margin-top:.4rem">出典: SchoolDigger.com</div></div>'
             la.markdown(h, unsafe_allow_html=True)
 
         # 詳細交通機関情報（OpenStreetMap Overpass）
@@ -1128,11 +1180,11 @@ def show_results(
                 <div style="background:#fffbeb;border-left:4px solid #f59e0b;border-radius:14px;
                             padding:1rem 1.4rem;margin-top:.8rem;box-shadow:0 2px 8px rgba(245,158,11,.1)">
                     <span style="font-weight:700;color:#b45309">🚗 自動車依存エリア</span>
-                    <span style="font-size:.88rem;color:#555;margin-left:.6rem">
+                    <span style="font-size:.88rem;color:#475569;margin-left:.6rem">
                         半径3マイル以内に公共交通機関の停留所なし（バス・鉄道・地下鉄）。
                         車なしでの生活は困難です。入居者層は自動車保有世帯が前提。
                     </span>
-                    <span style="font-size:.75rem;color:#aaa;margin-left:.4rem">出典: OpenStreetMap</span>
+                    <span style="font-size:.75rem;color:#94a3b8;margin-left:.4rem">出典: OpenStreetMap</span>
                 </div>
                 """, unsafe_allow_html=True)
             else:
@@ -1141,7 +1193,7 @@ def show_results(
                     h += (f'<div class="row"><span class="row-label">{stop["type"]} {stop["name"]}'
                           f'<span style="font-size:.78rem;color:#888"> {stop.get("operator","")}</span></span>'
                           f'<span class="row-value">{stop["distance_miles"]}マイル</span></div>')
-                h += f'<div style="font-size:.75rem;color:#aaa;margin-top:.4rem">出典: OpenStreetMap / 半径{transit_det.get("radius_miles",1.9)}マイル</div></div>'
+                h += f'<div style="font-size:.75rem;color:#94a3b8;margin-top:.4rem">出典: OpenStreetMap / 半径{transit_det.get("radius_miles",1.9)}マイル</div></div>'
                 lc.markdown(h, unsafe_allow_html=True)
 
         # 犯罪データ（Chicago Data Portal / FBI Crime Data Explorer）
@@ -1185,13 +1237,13 @@ def show_results(
                 <div style="font-weight:700;color:{c_color};font-size:1rem">
                     {c_icon} 安全スコア: {safety_score}/100 ― {safety_label}
                 </div>
-                <div style="color:#555;font-size:.88rem;margin-top:.4rem">
+                <div style="color:#475569;font-size:.88rem;margin-top:.4rem">
                     {src_str}
                 </div>
-                <div style="color:#555;font-size:.85rem;margin-top:.3rem">
+                <div style="color:#475569;font-size:.85rem;margin-top:.3rem">
                     {detail_str}
                 </div>
-                <div style="color:#555;font-size:.85rem;margin-top:.3rem">
+                <div style="color:#475569;font-size:.85rem;margin-top:.3rem">
                     主な犯罪タイプ: {crimes_str}
                 </div>
             </div>
@@ -1219,12 +1271,12 @@ def show_results(
                     <div style="font-weight:700;color:#7c3aed;font-size:1rem">
                         📊 安全性 推定スコア: {int(est_safety)}/100 ― {est_label}
                     </div>
-                    <div style="color:#555;font-size:.88rem;margin-top:.4rem">
+                    <div style="color:#475569;font-size:.88rem;margin-top:.4rem">
                         ※ このエリアの直接犯罪データは未取得。世帯中央所得
                         <strong>${income:,}/年</strong>・空室率<strong>{vac_rate:.1f}%</strong>
                         から推定。{f'<strong>{county}</strong>は高所得・急成長郡。' if county else ''}
                     </div>
-                    <div style="color:#888;font-size:.8rem;margin-top:.3rem">
+                    <div style="color:#64748b;font-size:.8rem;margin-top:.3rem">
                         正確な犯罪データには FBI_API_KEY の設定が必要です
                         （<a href="https://api.usa.gov/crime/fbi/sapi/" target="_blank">api.usa.gov/crime/fbi/sapi</a> で無料登録）
                     </div>
@@ -1276,15 +1328,15 @@ def show_results(
             bar_width = min(abs(g2) * 8, 100)
             st.markdown(f"""
             <div style="background:#f8fafc;border:1px solid #dde5f0;border-radius:14px;padding:.9rem 1.2rem;margin-top:.5rem">
-                <div style="font-size:.85rem;color:#555;margin-bottom:.4rem">
+                <div style="font-size:.85rem;color:#475569;margin-bottom:.4rem">
                     📈 <strong>{pop_growth.get('county_name','')}</strong> 人口増加トレンド
-                    <span style="font-size:.75rem;color:#aaa;margin-left:.5rem">出典: US Census Bureau Population Estimates</span>
+                    <span style="font-size:.75rem;color:#94a3b8;margin-left:.5rem">出典: US Census Bureau Population Estimates</span>
                 </div>
                 <div style="display:flex;align-items:center;gap:.8rem">
                     <div style="width:{bar_width}%;height:18px;background:{bar_color};border-radius:4px;min-width:4px"></div>
                     <span style="font-size:.9rem;font-weight:700;color:{g2_color}">2年間 {g2:+.1f}% ({g2_label})</span>
                 </div>
-                <div style="font-size:.78rem;color:#777;margin-top:.3rem">
+                <div style="font-size:.78rem;color:#64748b;margin-top:.3rem">
                     人口密度: {pop_growth.get('density', 0):.1f}人/sq mi ／
                     2020年: {pop_growth.get('pop_2020', 0):,}人 →
                     2021年: {pop_growth.get('pop_2021', 0):,}人 →
@@ -1379,7 +1431,7 @@ def show_results(
             <span class="row-value" style="color:{u_color}">{u_rate:.1f}% （{unemp.get('period','')}）</span></div>
             <div class="row"><span class="row-label">評価</span>
             <span class="row-value">{'低失業率 ✅' if u_rate < 4 else '標準 ✅' if u_rate < 6 else '要注意 ⚠️'}</span></div>
-            <div style="font-size:.75rem;color:#aaa;margin-top:.5rem">出典: Bureau of Labor Statistics</div>
+            <div style="font-size:.75rem;color:#94a3b8;margin-top:.5rem">出典: Bureau of Labor Statistics</div>
             </div>
             """, unsafe_allow_html=True)
         elif unemp.get("error"):
@@ -1397,14 +1449,14 @@ def show_results(
                     vac_html += (f'<div class="row"><span class="row-label">{info["label"]}</span>'
                                  f'<span class="row-value" style="color:{v_color}">'
                                  f'{v:.1f}% ― {v_label}</span></div>')
-            vac_html += '<div style="font-size:.75rem;color:#aaa;margin-top:.5rem">出典: FRED / Federal Reserve</div></div>'
+            vac_html += '<div style="font-size:.75rem;color:#94a3b8;margin-top:.5rem">出典: FRED / Federal Reserve</div></div>'
             st.markdown(vac_html, unsafe_allow_html=True)
 
         # HUD Fair Market Rent
         hud = loc.get("hud_fmr", {}) if not loc.get("error") else {}
         if hud and not hud.get("error"):
             hud_html = f'<div class="card"><h4>🏛️ HUD 公正市場賃料 ({hud.get("year","")})</h4>'
-            hud_html += f'<div style="font-size:.82rem;color:#555;margin-bottom:.5rem">{hud.get("area_name","")}</div>'
+            hud_html += f'<div style="font-size:.82rem;color:#475569;margin-bottom:.5rem">{hud.get("area_name","")}</div>'
             has_data = False
             for label, key in [("スタジオ", "studio"), ("1BR", "1br"), ("2BR", "2br"), ("3BR", "3br"), ("4BR", "4br")]:
                 val = hud.get(key, 0)
@@ -1416,7 +1468,7 @@ def show_results(
                     hud_html += f'<div class="row"><span class="row-label">{label}</span><span class="row-value">${val:,.0f}/月 <span style="font-size:.8rem;color:#888">{diff_str}</span></span></div>'
             if not has_data:
                 hud_html += '<div style="color:#999;font-size:.88rem">賃料データなし（エリア未対応の可能性）</div>'
-            hud_html += '<div style="font-size:.75rem;color:#aaa;margin-top:.5rem">出典: HUD Fair Market Rents</div></div>'
+            hud_html += '<div style="font-size:.75rem;color:#94a3b8;margin-top:.5rem">出典: HUD Fair Market Rents</div></div>'
             st.markdown(hud_html, unsafe_allow_html=True)
         elif hud.get("error"):
             st.caption(f"HUD FMRデータ: {hud['error']}")
@@ -1451,7 +1503,7 @@ def show_results(
 
                 link_html = (
                     f'<a href="{url}" target="_blank" rel="noopener" '
-                    f'style="color:#1a237e;text-decoration:none;font-weight:600;'
+                    f'style="color:#1d4ed8;text-decoration:none;font-weight:600;'
                     f'font-size:.88rem;line-height:1.35">{ttl}</a>'
                     if url else
                     f'<span style="font-weight:600;font-size:.88rem">{ttl}</span>'
@@ -1462,12 +1514,12 @@ def show_results(
                 meta_str = " · ".join(meta)
 
                 col.markdown(
-                    f"""<div style="background:white;border:1px solid #e8eaf6;
-                        border-left:4px solid #3949ab;border-radius:10px;
+                    f"""<div style="background:white;border:1px solid #e2e8f0;
+                        border-left:4px solid #2563eb;border-radius:10px;
                         padding:.9rem 1.1rem;margin-bottom:.7rem;min-height:110px">
                         {link_html}
-                        <div style="font-size:.75rem;color:#888;margin-top:.35rem">{meta_str}</div>
-                        {('<div style="font-size:.8rem;color:#555;margin-top:.35rem">'
+                        <div style="font-size:.75rem;color:#64748b;margin-top:.35rem">{meta_str}</div>
+                        {('<div style="font-size:.8rem;color:#475569;margin-top:.35rem">'
                           + summ + ('…' if len(art.get('summary','')) > 160 else '')
                           + '</div>') if summ else ''}
                     </div>""",
@@ -1529,7 +1581,7 @@ def show_results(
                     border_col = "#0284c7" if lang == "ja" else "#c62828" if "bloomberg" in src.lower() or "wsj" in src.lower() else "#059669"
                     link_html = (
                         f'<a href="{url}" target="_blank" rel="noopener" '
-                        f'style="color:#1a237e;text-decoration:none;font-weight:600;'
+                        f'style="color:#1d4ed8;text-decoration:none;font-weight:600;'
                         f'font-size:.86rem;line-height:1.35">{ttl}</a>'
                         if url else
                         f'<span style="font-weight:600;font-size:.86rem">{ttl}</span>'
@@ -1539,14 +1591,14 @@ def show_results(
                     if src:  meta.append(src)
 
                     col.markdown(
-                        f"""<div style="background:white;border:1px solid #e8eaf6;
+                        f"""<div style="background:white;border:1px solid #e2e8f0;
                             border-left:4px solid {border_col};border-radius:10px;
                             padding:.85rem 1rem;margin-bottom:.65rem;min-height:115px">
                             {link_html}
-                            <div style="font-size:.73rem;color:#888;margin-top:.3rem">
+                            <div style="font-size:.73rem;color:#64748b;margin-top:.3rem">
                                 {" · ".join(meta)}
                             </div>
-                            {('<div style="font-size:.78rem;color:#555;margin-top:.3rem">'
+                            {('<div style="font-size:.78rem;color:#475569;margin-top:.3rem">'
                               + summ + ('…' if len(art.get('summary','')) > 160 else '')
                               + '</div>') if summ else ''}
                         </div>""",
@@ -1627,14 +1679,14 @@ def show_results(
 def main():
     st.markdown("""
     <div class="main-header">
-        <div style="font-size:1rem;letter-spacing:.15rem;opacity:.8;margin-bottom:.4rem;font-weight:500">
-            ★ TEXAS &amp; USA REAL ESTATE INTELLIGENCE ★
-        </div>
-        <h1>🏠 AI不動産投資コンサルタント</h1>
-        <p>日本人投資家向け 米国不動産 投資分析プラットフォーム</p>
-        <p style="font-size:.80rem;opacity:.72;margin-top:.55rem;letter-spacing:.03rem">
-            Powered by&ensp;Claude AI · Zillow · Google Maps · FEMA · Census · FRED
-            · CNBC · Bloomberg · WSJ · NYT · Redfin
+        <div class="orb"></div>
+        <div class="badge">🏠 USA REAL ESTATE ANALYTICS PLATFORM</div>
+        <h1>AI不動産投資コンサルタント</h1>
+        <p class="sub">日本人投資家向け 米国不動産 投資分析プラットフォーム</p>
+        <p class="powered">
+            Powered by Claude AI &nbsp;·&nbsp; Zillow &nbsp;·&nbsp; Google Maps &nbsp;·&nbsp;
+            FEMA &nbsp;·&nbsp; Census &nbsp;·&nbsp; FRED &nbsp;·&nbsp;
+            CNBC &nbsp;·&nbsp; Bloomberg &nbsp;·&nbsp; WSJ &nbsp;·&nbsp; NYT &nbsp;·&nbsp; Redfin
         </p>
     </div>
     """, unsafe_allow_html=True)
