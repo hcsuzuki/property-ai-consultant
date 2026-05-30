@@ -21,60 +21,178 @@ st.set_page_config(
 # ──────────────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
+/* ════════════════════════════════════════════════════════════
+   AI不動産投資コンサルタント  ·  Texas Sky / Modern Pro UI
+   ════════════════════════════════════════════════════════════ */
+
+/* ─── App Background ─── */
+[data-testid="stAppViewContainer"] { background: #f0f6ff !important; }
+[data-testid="stHeader"]           { background: transparent !important; }
+section[data-testid="stSidebar"]   {
+    background: #ffffff !important;
+    border-right: 1px solid #dde5f0;
+}
+
+/* ─── Main Header ─── */
 .main-header {
     text-align: center;
-    padding: 2.5rem 2rem;
-    background: linear-gradient(135deg, #1a237e 0%, #283593 60%, #3949ab 100%);
+    padding: 3rem 2rem 2.8rem;
+    background: linear-gradient(135deg,
+        #062a45 0%, #0a4272 22%, #0369a1 52%, #0284c7 72%, #0ea5e9 88%, #38bdf8 100%);
     color: white;
-    border-radius: 16px;
-    margin-bottom: 2rem;
-    box-shadow: 0 8px 32px rgba(26,35,126,.3);
+    border-radius: 22px;
+    margin-bottom: 2.4rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,.08), 0 24px 60px rgba(2,132,199,.22);
+    position: relative; overflow: hidden;
 }
-.main-header h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: .4rem; }
-.main-header p  { font-size: .95rem; opacity: .9; margin: 0; }
+.main-header::before {
+    content: '';
+    position: absolute; top: -70px; left: 28%;
+    width: 340px; height: 340px;
+    background: radial-gradient(circle, rgba(255,255,255,.09) 0%, transparent 68%);
+    pointer-events: none;
+}
+.main-header::after {
+    content: '';
+    position: absolute; bottom: -55px; right: 6%;
+    width: 260px; height: 260px;
+    background: radial-gradient(circle, rgba(255,255,255,.07) 0%, transparent 68%);
+    pointer-events: none;
+}
+.main-header h1 {
+    font-size: 2.4rem; font-weight: 800;
+    margin-bottom: .55rem; letter-spacing: -.4px;
+    text-shadow: 0 2px 18px rgba(0,0,0,.18);
+}
+.main-header p { font-size: .97rem; opacity: .93; margin: 0; }
 
+/* ─── Section Titles ─── */
 .section-title {
-    font-size: 1.15rem; font-weight: 700; color: #1a237e;
-    border-left: 4px solid #3949ab; padding-left: .9rem;
-    margin: 2rem 0 1rem;
+    font-size: 1.1rem; font-weight: 700; color: #0c172a;
+    border-left: 4px solid #0ea5e9; padding-left: 1rem;
+    margin: 2.6rem 0 1.2rem;
 }
 
+/* ─── Cards ─── */
 .card {
-    background: white;
-    border-radius: 12px;
-    padding: 1.4rem 1.6rem;
-    box-shadow: 0 2px 12px rgba(0,0,0,.08);
-    margin-bottom: 1rem;
-    height: 100%;
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 1.5rem 1.75rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05), 0 6px 22px rgba(0,0,0,.07);
+    border: 1px solid #dde5f0;
+    margin-bottom: 1rem; height: 100%;
     word-wrap: break-word; overflow-wrap: break-word; overflow: hidden;
 }
-.card h4 { color: #1a237e; border-bottom: 2px solid #e8eaf6; padding-bottom: .5rem; margin-bottom: 1rem; }
+.card h4 {
+    color: #0c172a;
+    border-bottom: 2px solid #f0f4f8;
+    padding-bottom: .55rem; margin-bottom: 1rem;
+    font-size: .98rem; font-weight: 700;
+}
 
-.row { display:flex; justify-content:space-between; padding:.35rem 0; border-bottom:1px solid #f5f5f5; }
+/* ─── Data Rows ─── */
+.row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: .43rem 0; border-bottom: 1px solid #f8fafc;
+}
 .row:last-child { border-bottom: none; }
-.row-label { color: #666; font-size: .88rem; }
-.row-value { font-weight: 600; color: #1a237e; font-size: .92rem; }
+.row-label { color: #5a6a80; font-size: .87rem; }
+.row-value { font-weight: 600; color: #0c172a; font-size: .91rem; }
 
+/* ─── Recommendation Cards ─── */
 .rec-card {
-    padding: 1.4rem 1.8rem; border-radius: 12px;
+    padding: 1.7rem 2rem; border-radius: 18px;
     border-left: 6px solid; margin-bottom: 1.5rem;
-    background: white; box-shadow: 0 2px 12px rgba(0,0,0,.08);
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0,0,0,.07), 0 10px 28px rgba(0,0,0,.05);
     word-wrap: break-word; overflow-wrap: break-word; overflow: hidden;
 }
-.rec-hold  { border-color: #43a047; }
-.rec-sell  { border-color: #fb8c00; }
-.rec-check { border-color: #1e88e5; }
+.rec-hold  { border-color: #10b981; background: linear-gradient(to right, #ecfdf5 0%, #ffffff 55%); }
+.rec-sell  { border-color: #f59e0b; background: linear-gradient(to right, #fffbeb 0%, #ffffff 55%); }
+.rec-check { border-color: #0ea5e9; background: linear-gradient(to right, #f0f9ff 0%, #ffffff 55%); }
 
-.tag-good { background:#e8f5e9; color:#2e7d32; padding:.4rem .7rem; border-radius:8px; margin-bottom:.45rem; font-size:.88rem; display:block; }
-.tag-risk { background:#fff3e0; color:#e65100; padding:.4rem .7rem; border-radius:8px; margin-bottom:.45rem; font-size:.88rem; display:block; }
-
-.disclaimer {
-    font-size:.75rem; color:#999; padding:1rem;
-    background:#fafafa; border:1px solid #eee;
-    border-radius:8px; margin-top:3rem; line-height:1.7;
+/* ─── Tags ─── */
+.tag-good {
+    background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+    color: #064e3b; padding: .46rem .9rem;
+    border-radius: 10px; margin-bottom: .5rem;
+    font-size: .87rem; display: block;
+    border-left: 3px solid #22c55e;
+}
+.tag-risk {
+    background: linear-gradient(135deg, #fff7ed, #ffedd5);
+    color: #7c2d12; padding: .46rem .9rem;
+    border-radius: 10px; margin-bottom: .5rem;
+    font-size: .87rem; display: block;
+    border-left: 3px solid #fb923c;
 }
 
-div[data-testid="stExpander"] { border:1px solid #e8eaf6; border-radius:10px; margin-bottom:.5rem; }
+/* ─── Disclaimer ─── */
+.disclaimer {
+    font-size: .77rem; color: #8a9ab5;
+    padding: 1.5rem 2rem;
+    background: #f8fafc; border: 1px solid #dde5f0;
+    border-radius: 14px; margin-top: 3rem; line-height: 1.9;
+}
+
+/* ─── Expanders ─── */
+div[data-testid="stExpander"] {
+    border: 1px solid #dde5f0 !important;
+    border-radius: 14px !important;
+    margin-bottom: .55rem;
+    overflow: hidden;
+    background: white;
+}
+
+/* ─── Tabs ─── */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 4px; background: #edf2f8;
+    border-radius: 14px; padding: 5px;
+}
+.stTabs [data-baseweb="tab"] {
+    border-radius: 10px;
+    font-weight: 600 !important;
+    font-size: .87rem !important;
+}
+.stTabs [aria-selected="true"] {
+    background: #ffffff !important;
+    box-shadow: 0 1px 5px rgba(0,0,0,.12) !important;
+    color: #0284c7 !important;
+}
+
+/* ─── Metrics ─── */
+div[data-testid="stMetric"] {
+    background: white;
+    border-radius: 14px;
+    padding: .9rem 1.15rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05), 0 4px 14px rgba(0,0,0,.06);
+    border: 1px solid #dde5f0;
+}
+div[data-testid="stMetricLabel"]  { color: #5a6a80 !important; font-size: .82rem !important; }
+div[data-testid="stMetricValue"]  { font-weight: 700 !important; color: #0c172a !important; }
+
+/* ─── Sidebar Typography ─── */
+section[data-testid="stSidebar"] h3 { color: #0284c7 !important; font-weight: 700; }
+
+/* ─── Form & Submit ─── */
+div[data-testid="stForm"] {
+    background: white; border-radius: 18px;
+    padding: 1.5rem; border: 1px solid #dde5f0;
+    box-shadow: 0 2px 12px rgba(0,0,0,.05);
+}
+div.stFormSubmitButton > button {
+    background: linear-gradient(135deg, #0369a1 0%, #0ea5e9 100%) !important;
+    color: white !important; border: none !important;
+    border-radius: 12px !important; font-weight: 700 !important;
+    font-size: 1rem !important;
+    box-shadow: 0 4px 16px rgba(14,165,233,.38) !important;
+}
+
+/* ─── Alerts ─── */
+div.stAlert { border-radius: 12px !important; }
+
+/* ─── Dataframe ─── */
+div[data-testid="stDataFrame"] { border-radius: 12px; overflow: hidden; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -346,26 +464,29 @@ def calc_after_tax_cf(fin: dict, depr: dict, tax_bracket: float = 25.0) -> dict:
 # ──────────────────────────────────────────────────────────────────────────────
 
 def gauge_chart(score: int) -> go.Figure:
-    color = "#00897b" if score >= 80 else "#43a047" if score >= 65 else "#fb8c00" if score >= 50 else "#e53935"
+    color = "#10b981" if score >= 80 else "#0ea5e9" if score >= 65 else "#f59e0b" if score >= 50 else "#ef4444"
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=score,
         number={"font": {"size": 52, "color": color}, "suffix": "/100"},
-        title={"text": "投資スコア", "font": {"size": 16, "color": "#1a237e"}},
+        title={"text": "投資スコア", "font": {"size": 16, "color": "#0c172a"}},
         gauge={
-            "axis": {"range": [0, 100], "tickvals": [0, 25, 50, 65, 80, 100]},
+            "axis": {"range": [0, 100], "tickvals": [0, 25, 50, 65, 80, 100],
+                     "tickcolor": "#8a9ab5"},
             "bar": {"color": color, "thickness": 0.28},
+            "bgcolor": "#f8fafc",
             "steps": [
-                {"range": [0, 50],   "color": "#ffebee"},
-                {"range": [50, 65],  "color": "#fff3e0"},
-                {"range": [65, 80],  "color": "#e8f5e9"},
-                {"range": [80, 100], "color": "#e0f2f1"},
+                {"range": [0, 50],   "color": "#fff1f2"},
+                {"range": [50, 65],  "color": "#fffbeb"},
+                {"range": [65, 80],  "color": "#f0fdf4"},
+                {"range": [80, 100], "color": "#ecfdf5"},
             ],
             "threshold": {"line": {"color": color, "width": 4}, "thickness": 0.85, "value": score},
         },
     ))
-    fig.update_layout(height=280, margin=dict(l=20, r=20, t=40, b=0),
-                      paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
+    fig.update_layout(height=290, margin=dict(l=20, r=20, t=40, b=0),
+                      paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                      font={"family": "Inter, sans-serif"})
     return fig
 
 
@@ -384,21 +505,21 @@ def breakdown_chart(breakdown: dict) -> go.Figure:
         breakdown.get("market_max", 10),
     ]
     pcts   = [v / m * 100 if m else 0 for v, m in zip(vals, maxs)]
-    colors = ["#43a047" if p >= 70 else "#fb8c00" if p >= 45 else "#e53935" for p in pcts]
+    colors = ["#10b981" if p >= 70 else "#f59e0b" if p >= 45 else "#ef4444" for p in pcts]
 
     fig = go.Figure()
-    fig.add_trace(go.Bar(x=cats, y=maxs, marker_color="#e8eaf6", showlegend=False, name="最大"))
+    fig.add_trace(go.Bar(x=cats, y=maxs, marker_color="#edf2f8", showlegend=False, name="最大"))
     fig.add_trace(go.Bar(
         x=cats, y=vals, marker_color=colors, showlegend=False,
         text=[f"{v}/{m}" for v, m in zip(vals, maxs)], textposition="outside", name="取得",
     ))
     fig.update_layout(
-        barmode="overlay", height=270,
+        barmode="overlay", height=275,
         margin=dict(l=10, r=10, t=20, b=10),
         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        yaxis={"showgrid": True, "gridcolor": "#f5f5f5"},
+        yaxis={"showgrid": True, "gridcolor": "#f0f4f8"},
         xaxis={"showgrid": False},
-        font={"size": 11},
+        font={"size": 11, "family": "Inter, sans-serif"},
     )
     return fig
 
@@ -408,22 +529,25 @@ def ten_year_chart(sim: list) -> go.Figure:
     values   = [d["物件価値"]   for d in sim]
     equities = [d["エクイティ"] for d in sim]
     cum_cfs  = [d["累積CF"]     for d in sim]
-    colors   = ["#a5d6a7" if v >= 0 else "#ef9a9a" for v in cum_cfs]
+    colors   = ["#6ee7b7" if v >= 0 else "#fca5a5" for v in cum_cfs]
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=years, y=values,   name="物件価値",
-                             line=dict(color="#1565c0", width=2), mode="lines+markers", marker=dict(size=8)))
+                             line=dict(color="#0284c7", width=2.5), mode="lines+markers",
+                             marker=dict(size=8, color="#0284c7", line=dict(color="white", width=2))))
     fig.add_trace(go.Scatter(x=years, y=equities, name="エクイティ",
-                             line=dict(color="#2e7d32", width=2), mode="lines+markers", marker=dict(size=8)))
+                             line=dict(color="#10b981", width=2.5), mode="lines+markers",
+                             marker=dict(size=8, color="#10b981", line=dict(color="white", width=2))))
     fig.add_trace(go.Bar(x=years, y=cum_cfs, name="累積CF", marker_color=colors,
                          text=[f"${v:,.0f}" for v in cum_cfs], textposition="outside", yaxis="y2"))
     fig.update_layout(
-        title="10年間 資産価値・エクイティ・累積CF推移", height=400,
-        margin=dict(l=10, r=70, t=55, b=10),
+        title="10年間 資産価値・エクイティ・累積CF推移", height=410,
+        margin=dict(l=10, r=75, t=60, b=10),
         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        yaxis =dict(title="金額 ($)", showgrid=True, gridcolor="#f5f5f5"),
+        yaxis =dict(title="金額 ($)", showgrid=True, gridcolor="#f0f4f8"),
         yaxis2=dict(title="累積CF ($)", overlaying="y", side="right"),
         legend=dict(orientation="h", y=-0.18),
         xaxis =dict(showgrid=False),
+        font={"family": "Inter, sans-serif"},
     )
     return fig
 
@@ -455,7 +579,7 @@ def sensitivity_chart_rental(fin: dict) -> go.Figure:
     fig = go.Figure(go.Heatmap(
         z=z, x=price_labels, y=rent_labels,
         text=text_z, texttemplate="%{text}",
-        colorscale=[[0.0,"#7f0000"],[0.35,"#ef9a9a"],[0.5,"#fff9c4"],[0.65,"#a5d6a7"],[1.0,"#1b5e20"]],
+        colorscale=[[0.0,"#7f1d1d"],[0.35,"#fca5a5"],[0.5,"#fef9c3"],[0.65,"#6ee7b7"],[1.0,"#064e3b"]],
         zmid=0, colorbar={"title": "月次CF ($)"},
         hovertemplate="<b>%{y} × %{x}</b><br>月次CF: %{text}<extra></extra>",
     ))
@@ -476,7 +600,7 @@ def mortgage_rate_chart(market_data: dict) -> go.Figure | None:
     if rates_data.get("error"):
         return None
     fig    = go.Figure()
-    colors = {"MORTGAGE30US": "#1565c0", "MORTGAGE15US": "#2e7d32"}
+    colors = {"MORTGAGE30US": "#0284c7", "MORTGAGE15US": "#10b981"}
     for series_id, info in rates_data.items():
         if isinstance(info, dict) and "history" in info:
             dates  = [h[0] for h in info["history"]]
@@ -488,13 +612,14 @@ def mortgage_rate_chart(market_data: dict) -> go.Figure | None:
                 mode="lines",
             ))
     fig.update_layout(
-        title="住宅ローン金利推移（直近1年）", height=280,
-        margin=dict(l=10, r=10, t=50, b=10),
+        title="住宅ローン金利推移（直近1年）", height=290,
+        margin=dict(l=10, r=10, t=55, b=10),
         paper_bgcolor="rgba(0,0,0,0)",
-        yaxis=dict(title="金利 (%)", ticksuffix="%"),
+        plot_bgcolor="rgba(0,0,0,0)",
+        yaxis=dict(title="金利 (%)", ticksuffix="%", showgrid=True, gridcolor="#f0f4f8"),
         xaxis=dict(showgrid=False),
         legend=dict(orientation="h", y=-0.25),
-        font=dict(size=10),
+        font=dict(size=10, family="Inter, sans-serif"),
     )
     return fig
 
@@ -528,10 +653,10 @@ def show_results(
     c1, c2 = st.columns([1, 1.4])
     with c1:
         st.plotly_chart(gauge_chart(score), use_container_width=True)
-        if   score >= 80: label, color = "優秀 ― 強く推奨",  "#00897b"
-        elif score >= 65: label, color = "良好 ― 推奨",      "#43a047"
-        elif score >= 50: label, color = "普通 ― 要検討",    "#fb8c00"
-        else:             label, color = "要注意 ― 慎重に",  "#e53935"
+        if   score >= 80: label, color = "優秀 ― 強く推奨",  "#10b981"
+        elif score >= 65: label, color = "良好 ― 推奨",      "#0ea5e9"
+        elif score >= 50: label, color = "普通 ― 要検討",    "#f59e0b"
+        else:             label, color = "要注意 ― 慎重に",  "#ef4444"
         st.markdown(
             f"<div style='text-align:center;font-size:1.1rem;font-weight:700;"
             f"color:{color};margin-top:-.5rem'>{label}</div>",
@@ -621,7 +746,7 @@ def show_results(
     with adv1:
         html = '<div class="card"><h4>📈 リターン指標</h4>'
         if "error" not in irr_data:
-            irr_color  = "#2e7d32" if irr_data["irr"] >= 12 else "#e65100" if irr_data["irr"] >= 8 else "#b71c1c"
+            irr_color  = "#059669" if irr_data["irr"] >= 12 else "#f97316" if irr_data["irr"] >= 8 else "#dc2626"
             irr_label  = "優秀" if irr_data["irr"] >= 12 else "良好" if irr_data["irr"] >= 8 else "普通"
             em_label   = "優秀" if irr_data["equity_multiple"] >= 2.0 else "良好" if irr_data["equity_multiple"] >= 1.5 else "普通"
             html += f'<div class="row"><span class="row-label">IRR（10年出口想定）</span><span class="row-value" style="color:{irr_color}">{irr_data["irr"]:.1f}% ― {irr_label}</span></div>'
@@ -640,7 +765,7 @@ def show_results(
             if dscr_data.get("is_cash"):
                 html += '<div class="row"><span class="row-label">DSCR（返済カバー率）</span><span class="row-value" style="color:#2e7d32">∞ ― 全キャッシュ</span></div>'
             else:
-                dscr_color = "#2e7d32" if dscr_data["dscr"] >= 1.5 else "#e65100" if dscr_data["dscr"] >= 1.0 else "#b71c1c"
+                dscr_color = "#059669" if dscr_data["dscr"] >= 1.5 else "#f97316" if dscr_data["dscr"] >= 1.0 else "#dc2626"
                 dscr_icon  = "✅" if dscr_data["pass"] else "❌"
                 html += f'<div class="row"><span class="row-label">DSCR（返済カバー率）</span><span class="row-value" style="color:{dscr_color}">{dscr_data["dscr"]:.2f} {dscr_icon} ― {dscr_data["label"]}</span></div>'
                 html += f'<div class="row"><span class="row-label">年間NOI</span><span class="row-value">${dscr_data["annual_noi"]:,.0f}</span></div>'
@@ -648,7 +773,7 @@ def show_results(
 
         # Break-even occupancy
         if "error" not in beo_data:
-            beo_color = "#2e7d32" if beo_data["pass"] else "#b71c1c"
+            beo_color = "#059669" if beo_data["pass"] else "#dc2626"
             beo_icon  = "✅" if beo_data["pass"] else "⚠️"
             html += f'<div class="row"><span class="row-label">損益分岐稼働率</span><span class="row-value" style="color:{beo_color}">{beo_data["breakeven_occupancy_pct"]:.1f}% {beo_icon} ― {beo_data["label"]}</span></div>'
             html += f'<div class="row"><span class="row-label">許容空室率</span><span class="row-value">{beo_data["safe_vacancy_pct"]:.1f}%</span></div>'
@@ -658,13 +783,13 @@ def show_results(
     with adv3:
         html = '<div class="card"><h4>💡 収益ルール・税引後</h4>'
         # 1% Rule
-        pct_color = "#2e7d32" if pct_data["pass"] else "#e65100"
+        pct_color = "#059669" if pct_data["pass"] else "#f97316"
         pct_icon  = "✅ クリア" if pct_data["pass"] else "❌ 未達"
         html += f'<div class="row"><span class="row-label">1%ルール</span><span class="row-value" style="color:{pct_color}">{pct_data["ratio"]:.3f}% ― {pct_icon}</span></div>'
         html += f'<div class="row"><span class="row-label">　目標賃料（1%）</span><span class="row-value">${pct_data["target_rent"]:,.0f}/月</span></div>'
         html += f'<div class="row"><span class="row-label">　現在賃料との差</span><span class="row-value">${pct_data["gap"]:+,.0f}/月</span></div>'
         # After-Tax CF
-        atcf_color = "#2e7d32" if atcf_data["after_tax_annual_cf"] >= 0 else "#b71c1c"
+        atcf_color = "#059669" if atcf_data["after_tax_annual_cf"] >= 0 else "#dc2626"
         html += f'<div class="row"><span class="row-label">税引後CF（年・税率{tax_bracket:.0f}%）</span><span class="row-value" style="color:{atcf_color}">${atcf_data["after_tax_annual_cf"]:,.0f}</span></div>'
         html += f'<div class="row"><span class="row-label">税引後CF（月）</span><span class="row-value" style="color:{atcf_color}">${atcf_data["after_tax_monthly_cf"]:,.0f}</span></div>'
         if atcf_data["tax_benefit"] > 0:
@@ -822,7 +947,7 @@ def show_results(
             "dom": None,
             "ppsf": None,
             "status": "入力値",
-            "color": "#1a237e",
+            "color": "#0369a1",
         })
         # Zillow Zestimate
         zest = prop.get("zestimate")
@@ -872,7 +997,7 @@ def show_results(
                     else:
                         diff     = price - fin["purchase_price"]
                         diff_pct = diff / fin["purchase_price"] * 100
-                        d_color  = "#2e7d32" if diff > 0 else "#b71c1c" if diff < 0 else "#555"
+                        d_color  = "#059669" if diff > 0 else "#dc2626" if diff < 0 else "#555"
                         d_arrow  = "▲" if diff > 0 else "▼" if diff < 0 else "＝"
                         html += f'<div style="font-size:1.4rem;font-weight:700;color:{src["color"]}">${price:,.0f}</div>'
                         html += f'<div style="font-size:.8rem;color:{d_color};margin-top:.2rem">{d_arrow} {diff:+,.0f} ({diff_pct:+.1f}%)</div>'
@@ -898,18 +1023,19 @@ def show_results(
             ws  = walk.get("walk_score", 0)
             ts  = walk.get("transit_score")
             bs  = walk.get("bike_score")
-            w_color = "#1565c0" if ws >= 70 else "#e65100" if ws >= 50 else "#b71c1c"
+            w_color = "#0284c7" if ws >= 70 else "#f97316" if ws >= 50 else "#dc2626"
             walk_html = f"""
-            <div style="background:#e3f2fd;border-left:4px solid #1565c0;border-radius:8px;
-                        padding:.9rem 1.2rem;margin-bottom:1rem;display:flex;gap:2rem;align-items:center">
+            <div style="background:#f0f9ff;border-left:4px solid #0ea5e9;border-radius:14px;
+                        padding:1rem 1.4rem;margin-bottom:1rem;display:flex;gap:2rem;align-items:center;
+                        box-shadow:0 2px 8px rgba(14,165,233,.1)">
                 <div><span style="font-size:1.5rem;font-weight:700;color:{w_color}">{ws}</span>
                      <span style="font-size:.82rem;color:#555;margin-left:.3rem">Walk Score<br>{walk.get("walk_desc","")}</span></div>
             """
             if ts is not None:
-                t_color = "#2e7d32" if ts >= 70 else "#e65100" if ts >= 50 else "#b71c1c"
+                t_color = "#059669" if ts >= 70 else "#f97316" if ts >= 50 else "#dc2626"
                 walk_html += f'<div><span style="font-size:1.5rem;font-weight:700;color:{t_color}">{ts}</span><span style="font-size:.82rem;color:#555;margin-left:.3rem">Transit Score<br>{walk.get("transit_desc","")}</span></div>'
             if bs is not None:
-                b_color = "#2e7d32" if bs >= 70 else "#e65100" if bs >= 50 else "#b71c1c"
+                b_color = "#059669" if bs >= 70 else "#f97316" if bs >= 50 else "#dc2626"
                 walk_html += f'<div><span style="font-size:1.5rem;font-weight:700;color:{b_color}">{bs}</span><span style="font-size:.82rem;color:#555;margin-left:.3rem">Bike Score<br>{walk.get("bike_desc","")}</span></div>'
             walk_html += "</div>"
             st.markdown(walk_html, unsafe_allow_html=True)
@@ -921,8 +1047,8 @@ def show_results(
             ficon  = "🚨" if flood.get("insurance_required") else "✅"
             fbg    = "#ffebee" if flood.get("insurance_required") else "#e8f5e9"
             st.markdown(f"""
-            <div style="background:{fbg};border-left:4px solid {fcolor};border-radius:8px;
-                        padding:.9rem 1.2rem;margin-bottom:1rem">
+            <div style="background:{fbg};border-left:4px solid {fcolor};border-radius:14px;
+                        padding:1rem 1.4rem;margin-bottom:1rem;box-shadow:0 2px 8px rgba(0,0,0,.06)">
                 <span style="font-weight:700;color:{fcolor};font-size:.95rem">
                     {ficon} 洪水リスク: ゾーン {flood.get('zone','X')} ― {flood.get('description','')}
                 </span>
@@ -979,7 +1105,7 @@ def show_results(
                 if stars is not None:
                     filled = int(round(stars))
                     star_str = "★" * filled + "☆" * (5 - filled) + f" {stars:.1f}/5"
-                    s_color = "#2e7d32" if stars >= 3.5 else "#e65100" if stars >= 2.5 else "#b71c1c"
+                    s_color = "#059669" if stars >= 3.5 else "#f97316" if stars >= 2.5 else "#dc2626"
                 else:
                     star_str = "評価なし"
                     s_color = "#aaa"
@@ -999,9 +1125,9 @@ def show_results(
             car_dep  = transit_det.get("car_dependent", True)
             if car_dep:
                 st.markdown("""
-                <div style="background:#fff3e0;border-left:4px solid #e65100;border-radius:8px;
-                            padding:.9rem 1.2rem;margin-top:.8rem">
-                    <span style="font-weight:700;color:#e65100">🚗 自動車依存エリア</span>
+                <div style="background:#fffbeb;border-left:4px solid #f59e0b;border-radius:14px;
+                            padding:1rem 1.4rem;margin-top:.8rem;box-shadow:0 2px 8px rgba(245,158,11,.1)">
+                    <span style="font-weight:700;color:#b45309">🚗 自動車依存エリア</span>
                     <span style="font-size:.88rem;color:#555;margin-left:.6rem">
                         半径3マイル以内に公共交通機関の停留所なし（バス・鉄道・地下鉄）。
                         車なしでの生活は困難です。入居者層は自動車保有世帯が前提。
@@ -1030,11 +1156,11 @@ def show_results(
             is_fbi          = "FBI" in source
 
             if safety_score >= 70:
-                c_color, c_bg, c_icon = "#2e7d32", "#e8f5e9", "✅"
+                c_color, c_bg, c_icon = "#059669", "#e8f5e9", "✅"
             elif safety_score >= 40:
-                c_color, c_bg, c_icon = "#e65100", "#fff3e0", "⚠️"
+                c_color, c_bg, c_icon = "#f97316", "#fff3e0", "⚠️"
             else:
-                c_color, c_bg, c_icon = "#b71c1c", "#ffebee", "🚨"
+                c_color, c_bg, c_icon = "#dc2626", "#ffebee", "🚨"
 
             crimes_str = (" / ".join(f"{c['type']}({c['count']}件)" for c in top_crimes[:4])
                           if top_crimes else "データなし")
@@ -1054,8 +1180,8 @@ def show_results(
                 src_str    = f"総件数: <strong>{total_incidents}件</strong>（出典: Chicago Data Portal）"
 
             st.markdown(f"""
-            <div style="background:{c_bg};border-left:4px solid {c_color};border-radius:8px;
-                        padding:1rem 1.2rem;margin-top:1rem">
+            <div style="background:{c_bg};border-left:4px solid {c_color};border-radius:14px;
+                        padding:1rem 1.4rem;margin-top:1rem;box-shadow:0 2px 8px rgba(0,0,0,.06)">
                 <div style="font-weight:700;color:{c_color};font-size:1rem">
                     {c_icon} 安全スコア: {safety_score}/100 ― {safety_label}
                 </div>
@@ -1085,12 +1211,12 @@ def show_results(
                     - min(15, vac_rate * 1.5)             # 高空室ほど低スコア
                 ))
                 est_label = "安全（推定）" if est_safety >= 70 else "普通（推定）" if est_safety >= 50 else "要確認（推定）"
-                est_color = "#2e7d32" if est_safety >= 70 else "#e65100"
+                est_color = "#059669" if est_safety >= 70 else "#f97316"
                 county = pop_growth.get("county_name", "") if pop_growth and not pop_growth.get("error") else ""
                 st.markdown(f"""
-                <div style="background:#f3e5f5;border-left:4px solid #7b1fa2;border-radius:8px;
-                            padding:1rem 1.2rem;margin-top:1rem">
-                    <div style="font-weight:700;color:#7b1fa2;font-size:1rem">
+                <div style="background:#f5f3ff;border-left:4px solid #7c3aed;border-radius:14px;
+                            padding:1rem 1.4rem;margin-top:1rem;box-shadow:0 2px 8px rgba(124,58,237,.1)">
+                    <div style="font-weight:700;color:#7c3aed;font-size:1rem">
                         📊 安全性 推定スコア: {int(est_safety)}/100 ― {est_label}
                     </div>
                     <div style="color:#555;font-size:.88rem;margin-top:.4rem">
@@ -1132,8 +1258,8 @@ def show_results(
         if pop_growth and not pop_growth.get("error"):
             g2 = pop_growth.get("growth_2yr_pct", 0)
             g1 = pop_growth.get("growth_1yr_pct", 0)
-            g2_color = "#2e7d32" if g2 >= 3 else "#e65100" if g2 >= 0 else "#b71c1c"
-            g1_color = "#2e7d32" if g1 >= 1.5 else "#e65100" if g1 >= 0 else "#b71c1c"
+            g2_color = "#059669" if g2 >= 3 else "#f97316" if g2 >= 0 else "#dc2626"
+            g1_color = "#059669" if g1 >= 1.5 else "#f97316" if g1 >= 0 else "#dc2626"
             g2_label = "急成長 🚀" if g2 >= 5 else "成長中 ✅" if g2 >= 3 else "緩成長 ➡️" if g2 >= 0 else "人口減少 ⚠️"
             g1_label = "高成長" if g1 >= 3 else "成長中" if g1 >= 1.5 else "横ばい" if g1 >= 0 else "減少"
             pg1, pg2, pg3, pg4 = st.columns(4)
@@ -1146,10 +1272,10 @@ def show_results(
                        f"{g1:+.1f}%",
                        g1_label)
             # 成長率グラフバー
-            bar_color = "#1b5e20" if g2 >= 5 else "#43a047" if g2 >= 3 else "#fb8c00" if g2 >= 0 else "#e53935"
+            bar_color = "#064e3b" if g2 >= 5 else "#10b981" if g2 >= 3 else "#f59e0b" if g2 >= 0 else "#ef4444"
             bar_width = min(abs(g2) * 8, 100)
             st.markdown(f"""
-            <div style="background:#f5f5f5;border-radius:8px;padding:.8rem 1rem;margin-top:.5rem">
+            <div style="background:#f8fafc;border:1px solid #dde5f0;border-radius:14px;padding:.9rem 1.2rem;margin-top:.5rem">
                 <div style="font-size:.85rem;color:#555;margin-bottom:.4rem">
                     📈 <strong>{pop_growth.get('county_name','')}</strong> 人口増加トレンド
                     <span style="font-size:.75rem;color:#aaa;margin-left:.5rem">出典: US Census Bureau Population Estimates</span>
@@ -1246,7 +1372,7 @@ def show_results(
         unemp = loc.get("unemployment", {}) if not loc.get("error") else {}
         if unemp and not unemp.get("error"):
             u_rate = unemp.get("unemployment_rate", 0)
-            u_color = "#2e7d32" if u_rate < 4 else "#e65100" if u_rate < 6 else "#b71c1c"
+            u_color = "#059669" if u_rate < 4 else "#f97316" if u_rate < 6 else "#dc2626"
             st.markdown(f"""
             <div class="card"><h4>📊 雇用状況（BLS）</h4>
             <div class="row"><span class="row-label">州失業率</span>
@@ -1266,7 +1392,7 @@ def show_results(
             for sid, info in vacancy_data.items():
                 if isinstance(info, dict) and "latest" in info:
                     v = info["latest"]
-                    v_color = "#2e7d32" if v < 6 else "#e65100" if v < 10 else "#b71c1c"
+                    v_color = "#059669" if v < 6 else "#f97316" if v < 10 else "#dc2626"
                     v_label = "低空室（需要旺盛）" if v < 6 else "標準" if v < 10 else "高空室（供給過剰）"
                     vac_html += (f'<div class="row"><span class="row-label">{info["label"]}</span>'
                                  f'<span class="row-value" style="color:{v_color}">'
@@ -1400,7 +1526,7 @@ def show_results(
                     summ = art.get("summary", "")[:160]
                     lang = art.get("lang", "")
 
-                    border_col = "#1565c0" if lang == "ja" else "#c62828" if "bloomberg" in src.lower() or "wsj" in src.lower() else "#2e7d32"
+                    border_col = "#0284c7" if lang == "ja" else "#c62828" if "bloomberg" in src.lower() or "wsj" in src.lower() else "#059669"
                     link_html = (
                         f'<a href="{url}" target="_blank" rel="noopener" '
                         f'style="color:#1a237e;text-decoration:none;font-weight:600;'
@@ -1501,9 +1627,15 @@ def show_results(
 def main():
     st.markdown("""
     <div class="main-header">
+        <div style="font-size:1rem;letter-spacing:.15rem;opacity:.8;margin-bottom:.4rem;font-weight:500">
+            ★ TEXAS &amp; USA REAL ESTATE INTELLIGENCE ★
+        </div>
         <h1>🏠 AI不動産投資コンサルタント</h1>
         <p>日本人投資家向け 米国不動産 投資分析プラットフォーム</p>
-        <p style="font-size:.82rem;opacity:.7;margin-top:.4rem">Powered by Claude AI · Google Maps · Zillow · FEMA · Census · FRED</p>
+        <p style="font-size:.80rem;opacity:.72;margin-top:.55rem;letter-spacing:.03rem">
+            Powered by&ensp;Claude AI · Zillow · Google Maps · FEMA · Census · FRED
+            · CNBC · Bloomberg · WSJ · NYT · Redfin
+        </p>
     </div>
     """, unsafe_allow_html=True)
 
