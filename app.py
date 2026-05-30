@@ -22,18 +22,18 @@ st.set_page_config(
 st.markdown("""
 <style>
 /* ═══════════════════════════════════════════════════════════════
-   PROPERTY AI CONSULTANT  ·  Clean Professional Light
-   Reference: Realogixs.com · Awwwards · Modern Real Estate SaaS
+   PROPERTY AI CONSULTANT  ·  Clean Professional
+   Reference: realogixs.com — White content + Dark form panel
    ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 html, body, [class*="css"], .stApp {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
 }
 
 /* ─── Page ─── */
-[data-testid="stAppViewContainer"] { background: #f3f4f8 !important; }
+[data-testid="stAppViewContainer"] { background: #ffffff !important; }
 [data-testid="stHeader"] { display: none !important; }
 .main .block-container { padding-top: 1.5rem !important; padding-bottom: 4rem !important; }
 
@@ -224,19 +224,54 @@ div[data-testid="stMetricLabel"] {
 div[data-testid="stMetricValue"] { font-size: 1.55rem !important; font-weight: 700 !important; color: #111827 !important; }
 div[data-testid="stMetricDelta"] { font-size: .77rem !important; font-weight: 600 !important; }
 
-/* ─── Form ─── */
+/* ─── Form — DARK PANEL (like the reference contact form) ─── */
 div[data-testid="stForm"] {
-    background: #ffffff !important; border-radius: 14px;
-    padding: 1.5rem !important; border: 1px solid #e5e7eb !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,.04) !important;
+    background: #0f172a !important;
+    border-radius: 12px !important;
+    padding: 2rem !important;
+    border: none !important;
+    box-shadow: 0 8px 40px rgba(0,0,0,.18) !important;
 }
+/* Labels inside dark form */
+div[data-testid="stForm"] label {
+    color: rgba(255,255,255,.75) !important;
+    font-size: .82rem !important; font-weight: 500 !important;
+}
+/* Sub-headings inside form */
+div[data-testid="stForm"] h4, div[data-testid="stForm"] .stMarkdown h4 {
+    color: rgba(255,255,255,.6) !important;
+    font-size: .82rem !important; font-weight: 600 !important;
+}
+div[data-testid="stForm"] p, div[data-testid="stForm"] small {
+    color: rgba(255,255,255,.6) !important;
+}
+/* Text inputs inside dark form */
+div[data-testid="stForm"] [data-testid="stTextInput"] > div > div,
+div[data-testid="stForm"] [data-testid="stNumberInput"] > div > div {
+    background: rgba(255,255,255,.07) !important;
+    border: 1px solid rgba(255,255,255,.18) !important;
+    border-radius: 6px !important;
+}
+div[data-testid="stForm"] input {
+    color: #ffffff !important;
+    font-weight: 500 !important;
+}
+/* Slider track inside dark form */
+div[data-testid="stForm"] [data-testid="stSlider"] > div > div {
+    background: rgba(255,255,255,.1) !important;
+}
+/* Submit button — blue solid like "SEND MESSAGE" */
 div.stFormSubmitButton > button {
     background: #2563eb !important;
     color: #ffffff !important; border: none !important;
-    border-radius: 8px !important; font-weight: 700 !important;
-    font-size: .95rem !important;
-    box-shadow: 0 2px 4px rgba(37,99,235,.2), 0 6px 16px rgba(37,99,235,.12) !important;
-    width: 100% !important;
+    border-radius: 6px !important; font-weight: 700 !important;
+    font-size: 1rem !important; letter-spacing: .04rem !important;
+    text-transform: uppercase !important;
+    box-shadow: 0 4px 12px rgba(37,99,235,.35) !important;
+    width: 100% !important; padding: .75rem 0 !important;
+}
+div.stFormSubmitButton > button:hover {
+    background: #1d4ed8 !important;
 }
 
 /* ─── Progress ─── */
@@ -1694,12 +1729,15 @@ def main():
         <h1>AI不動産投資コンサルタント</h1>
         <p class="sub">日本人投資家向け 米国不動産 投資分析プラットフォーム</p>
         <p class="powered">
-            Powered by Claude AI &nbsp;·&nbsp; Zillow &nbsp;·&nbsp; Google Maps &nbsp;·&nbsp;
+            Claude AI &nbsp;·&nbsp; Zillow &nbsp;·&nbsp; Google Maps &nbsp;·&nbsp;
             FEMA &nbsp;·&nbsp; Census &nbsp;·&nbsp; FRED &nbsp;·&nbsp;
-            CNBC &nbsp;·&nbsp; Bloomberg &nbsp;·&nbsp; WSJ &nbsp;·&nbsp; Redfin
+            CNBC &nbsp;·&nbsp; Bloomberg &nbsp;·&nbsp; WSJ
         </p>
     </div>
     """, unsafe_allow_html=True)
+
+    # 購入方法ラジオボタンを暗いフォームパネルの上に配置
+    st.markdown('<div style="margin-top:2rem;margin-bottom:.5rem;font-size:.82rem;font-weight:600;color:#374151;">購入方法</div>', unsafe_allow_html=True)
 
     # ── Session state ─────────────────────────────────────────────────────────
     if "comparison_list" not in st.session_state:
@@ -1876,6 +1914,20 @@ def main():
     is_cash = (purchase_type == "💵 全キャッシュ")
 
     with st.form("form"):
+        # ── Form header (like "CONTACT US TODAY" in the reference) ──────────
+        st.markdown("""
+        <div style="text-align:center;padding-bottom:1.5rem;margin-bottom:1.2rem;
+                    border-bottom:1px solid rgba(255,255,255,.1);">
+            <div style="font-size:.58rem;letter-spacing:.25rem;text-transform:uppercase;
+                        color:rgba(255,255,255,.4);font-weight:600;margin-bottom:.4rem;">
+                Property Analysis
+            </div>
+            <div style="font-size:1.3rem;font-weight:800;color:#ffffff;letter-spacing:.01rem;">
+                物件情報を入力
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
         col_a, col_b = st.columns([2, 1])
         with col_a:
             address = st.text_input(
