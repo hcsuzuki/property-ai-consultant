@@ -21,230 +21,219 @@ st.set_page_config(
 # ──────────────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-/* ═══════════════════════════════════════════════════════════════════
-   PROPERTY AI CONSULTANT  —  2025 Modern PropTech Dashboard
-   Design: dark header · clean white cards · Inter · Tailwind-inspired
-   ═══════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════
+   PROPERTY AI CONSULTANT  ·  Quiet Luxury Dark — Gold Edition
+   Inspired by: Compass, Sotheby's, Christie's RE, Bloomberg
+   ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ─── Font Reset ─── */
-html, body, [class*="css"], .stApp { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important; }
+html, body, [class*="css"], .stApp {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
 
 /* ─── Page ─── */
-[data-testid="stAppViewContainer"] { background: #f1f5f9 !important; }
+[data-testid="stAppViewContainer"] { background: #0f172a !important; }
 [data-testid="stHeader"] { display: none !important; }
 .main .block-container { padding-top: 1.2rem !important; padding-bottom: 3rem !important; }
 
 /* ─── Sidebar ─── */
 section[data-testid="stSidebar"] {
-    background: #ffffff !important;
-    border-right: 1px solid #e2e8f0 !important;
-    box-shadow: 4px 0 20px rgba(0,0,0,.04);
+    background: #0a0f1e !important;
+    border-right: 1px solid rgba(212,168,83,.18) !important;
 }
+section[data-testid="stSidebar"] h3 {
+    color: #d4a853 !important; font-weight: 700 !important;
+    font-size: .75rem !important; text-transform: uppercase !important;
+    letter-spacing: .12rem !important;
+}
+section[data-testid="stSidebar"] strong { color: #e2e8f0 !important; }
 
-/* ─── Main Header (Dark Prestige) ─── */
+/* ─── Main Header ─── */
 .main-header {
-    text-align: center;
-    padding: 3.8rem 2.5rem 3.5rem;
-    background: #0f172a;
-    color: white;
-    border-radius: 20px;
-    margin-bottom: 2.5rem;
+    text-align: center; padding: 3.6rem 2.5rem 3.2rem;
+    background: linear-gradient(160deg, #050d1f 0%, #0f172a 45%, #162040 80%, #0a1628 100%);
+    color: #f1f5f9; border-radius: 18px; margin-bottom: 2.5rem;
     position: relative; overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.06);
+    border: 1px solid rgba(212,168,83,.2);
+    box-shadow: 0 0 0 1px rgba(255,255,255,.04) inset, 0 30px 60px rgba(0,0,0,.5);
 }
-/* Blue-to-teal gradient overlay */
 .main-header::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(135deg,
-        rgba(37,99,235,.4) 0%, rgba(14,165,233,.25) 50%, rgba(16,185,129,.15) 100%);
-    pointer-events: none;
+    content: ''; position: absolute; inset: 0;
+    background-image: radial-gradient(rgba(212,168,83,.07) 1px, transparent 1px);
+    background-size: 28px 28px; pointer-events: none;
 }
-/* Dot-grid texture */
 .main-header::after {
-    content: '';
-    position: absolute; inset: 0;
-    background-image: radial-gradient(rgba(255,255,255,.08) 1px, transparent 1px);
-    background-size: 26px 26px;
+    content: ''; position: absolute;
+    top: -15%; right: 8%; width: 480px; height: 480px;
+    background: radial-gradient(circle, rgba(212,168,83,.14) 0%, transparent 60%);
     pointer-events: none;
 }
-/* Right glow orb */
 .main-header .orb {
-    position: absolute; top: -25%; right: 8%;
-    width: 420px; height: 420px;
-    background: radial-gradient(circle, rgba(37,99,235,.35) 0%, transparent 62%);
+    position: absolute; bottom: -20%; left: 5%; width: 380px; height: 380px;
+    background: radial-gradient(circle, rgba(14,165,233,.1) 0%, transparent 60%);
     pointer-events: none;
 }
 .main-header .badge {
     display: inline-flex; align-items: center; gap: .35rem;
-    background: rgba(37,99,235,.25);
-    border: 1px solid rgba(96,165,250,.4);
-    border-radius: 100px;
-    padding: .28rem .9rem;
-    font-size: .7rem; font-weight: 700;
-    letter-spacing: .12rem; text-transform: uppercase;
-    color: #93c5fd; margin-bottom: .9rem;
-    position: relative; z-index: 1;
+    background: rgba(212,168,83,.1); border: 1px solid rgba(212,168,83,.35);
+    border-radius: 100px; padding: .28rem .95rem;
+    font-size: .67rem; font-weight: 700; letter-spacing: .16rem;
+    text-transform: uppercase; color: #d4a853;
+    margin-bottom: .9rem; position: relative; z-index: 1;
 }
 .main-header h1 {
-    font-size: 2.5rem; font-weight: 900;
-    margin-bottom: .5rem; letter-spacing: -.6px;
+    font-size: 2.65rem; font-weight: 900; margin-bottom: .5rem; letter-spacing: -.5px;
     position: relative; z-index: 1;
-    background: linear-gradient(95deg, #ffffff 0%, #bfdbfe 60%, #a5f3fc 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
+    background: linear-gradient(135deg, #ffffff 0%, #ffe8a3 40%, #d4a853 80%, #e8c870 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
 }
-.main-header .sub { font-size: .97rem; opacity: .8; margin: 0; position: relative; z-index: 1; }
-.main-header .powered { font-size: .72rem; opacity: .45; margin-top: .6rem; letter-spacing: .04rem; position: relative; z-index: 1; }
+.main-header .sub {
+    font-size: .96rem; color: #94a3b8; margin: 0; position: relative; z-index: 1;
+}
+.main-header .powered {
+    font-size: .68rem; color: #334155; margin-top: .65rem;
+    letter-spacing: .05rem; position: relative; z-index: 1;
+}
 
 /* ─── Section Titles ─── */
 .section-title {
-    font-size: 1rem; font-weight: 700; color: #0f172a;
+    font-size: .82rem; font-weight: 800; color: #94a3b8;
     margin: 2.8rem 0 1.2rem;
     display: flex; align-items: center; gap: .6rem;
-    padding-bottom: .7rem;
-    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: .6rem; border-bottom: 1px solid rgba(212,168,83,.12);
+    text-transform: uppercase; letter-spacing: .1rem;
 }
 .section-title::before {
-    content: '';
-    flex-shrink: 0; width: 3px; height: 17px;
-    background: linear-gradient(180deg, #2563eb 0%, #0ea5e9 100%);
+    content: ''; flex-shrink: 0; width: 3px; height: 15px;
+    background: linear-gradient(180deg, #d4a853 0%, #f0c96a 100%);
     border-radius: 2px;
 }
 
 /* ─── Cards ─── */
 .card {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 1.25rem 1.5rem;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 2px 8px rgba(0,0,0,.05);
+    background: #1a2035;
+    border-radius: 14px; padding: 1.3rem 1.55rem;
+    border: 1px solid rgba(212,168,83,.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
     margin-bottom: 1rem; height: 100%;
     word-wrap: break-word; overflow-wrap: break-word; overflow: hidden;
 }
 .card h4 {
-    color: #0f172a; font-size: .88rem; font-weight: 700;
-    margin-bottom: .85rem; padding-bottom: .55rem;
-    border-bottom: 1px solid #f1f5f9;
-    text-transform: uppercase; letter-spacing: .04rem;
+    color: #d4a853; font-size: .75rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .1rem;
+    margin-bottom: .85rem; padding-bottom: .6rem;
+    border-bottom: 1px solid rgba(212,168,83,.15);
 }
 
 /* ─── Data Rows ─── */
 .row {
     display: flex; justify-content: space-between; align-items: center;
-    padding: .48rem 0; border-bottom: 1px solid #f8fafc;
+    padding: .46rem 0; border-bottom: 1px solid rgba(255,255,255,.05);
 }
 .row:last-child { border-bottom: none; }
-.row-label { color: #64748b; font-size: .84rem; font-weight: 400; }
-.row-value { font-weight: 600; color: #0f172a; font-size: .88rem; }
+.row-label { color: #64748b; font-size: .83rem; font-weight: 400; }
+.row-value { font-weight: 600; color: #e2e8f0; font-size: .88rem; }
 
 /* ─── Recommendation Card ─── */
 .rec-card {
-    padding: 1.7rem 2rem; border-radius: 12px;
-    border: 1px solid #e2e8f0; border-left: 4px solid;
-    background: #ffffff;
-    box-shadow: 0 2px 8px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.04);
+    padding: 1.7rem 2rem; border-radius: 14px;
+    border: 1px solid rgba(255,255,255,.07); border-left: 4px solid;
+    background: #1a2035;
+    box-shadow: 0 4px 20px rgba(0,0,0,.35);
     margin-bottom: 1.5rem;
     word-wrap: break-word; overflow-wrap: break-word; overflow: hidden;
 }
-.rec-hold  { border-left-color: #10b981 !important; background: linear-gradient(to right, #f0fdf4 0%, #fff 50%) !important; }
-.rec-sell  { border-left-color: #f59e0b !important; background: linear-gradient(to right, #fefce8 0%, #fff 50%) !important; }
-.rec-check { border-left-color: #2563eb !important; background: linear-gradient(to right, #eff6ff 0%, #fff 50%) !important; }
+.rec-hold  { border-left-color: #34d399 !important; background: linear-gradient(to right, rgba(52,211,153,.07) 0%, #1a2035 55%) !important; }
+.rec-sell  { border-left-color: #d4a853 !important; background: linear-gradient(to right, rgba(212,168,83,.07) 0%, #1a2035 55%) !important; }
+.rec-check { border-left-color: #38bdf8 !important; background: linear-gradient(to right, rgba(56,189,248,.06) 0%, #1a2035 55%) !important; }
 
 /* ─── Tags ─── */
 .tag-good {
-    background: #f0fdf4; color: #166534;
-    padding: .38rem .85rem; border-radius: 6px;
-    margin-bottom: .4rem; font-size: .84rem; display: block;
-    border: 1px solid #bbf7d0; font-weight: 500;
+    background: rgba(52,211,153,.08); color: #6ee7b7;
+    padding: .4rem .85rem; border-radius: 6px; margin-bottom: .4rem;
+    font-size: .83rem; display: block;
+    border: 1px solid rgba(52,211,153,.2); font-weight: 500;
 }
 .tag-risk {
-    background: #fff7ed; color: #9a3412;
-    padding: .38rem .85rem; border-radius: 6px;
-    margin-bottom: .4rem; font-size: .84rem; display: block;
-    border: 1px solid #fed7aa; font-weight: 500;
+    background: rgba(251,191,36,.08); color: #fcd34d;
+    padding: .4rem .85rem; border-radius: 6px; margin-bottom: .4rem;
+    font-size: .83rem; display: block;
+    border: 1px solid rgba(251,191,36,.2); font-weight: 500;
 }
 
 /* ─── Disclaimer ─── */
 .disclaimer {
-    font-size: .74rem; color: #94a3b8;
+    font-size: .73rem; color: #334155;
     padding: 1.2rem 1.6rem;
-    background: #f8fafc; border: 1px solid #e2e8f0;
+    background: #111827; border: 1px solid rgba(255,255,255,.06);
     border-radius: 10px; margin-top: 3rem; line-height: 1.9;
 }
 
 /* ─── Expanders ─── */
 div[data-testid="stExpander"] {
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 10px !important;
-    margin-bottom: .4rem !important;
-    background: white !important; overflow: hidden !important;
+    border: 1px solid rgba(212,168,83,.12) !important;
+    border-radius: 10px !important; margin-bottom: .4rem !important;
+    background: #1a2035 !important; overflow: hidden !important;
 }
 
 /* ─── Tabs ─── */
 .stTabs [data-baseweb="tab-list"] {
-    background: #f1f5f9; border-radius: 10px; padding: 3px; gap: 2px;
+    background: #111827; border-radius: 10px; padding: 3px; gap: 2px;
 }
 .stTabs [data-baseweb="tab"] {
     border-radius: 7px; font-weight: 600 !important; font-size: .83rem !important;
-    color: #64748b !important;
+    color: #475569 !important;
 }
 .stTabs [aria-selected="true"] {
-    background: #ffffff !important; color: #0f172a !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,.12) !important;
+    background: #1a2035 !important; color: #d4a853 !important;
+    border: 1px solid rgba(212,168,83,.2) !important;
 }
 
 /* ─── Metrics ─── */
 div[data-testid="stMetric"] {
-    background: white !important; border-radius: 12px !important;
+    background: #1a2035 !important; border-radius: 12px !important;
     padding: 1rem 1.2rem !important;
-    border: 1px solid #e2e8f0 !important;
-    box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 2px 8px rgba(0,0,0,.04) !important;
+    border: 1px solid rgba(212,168,83,.1) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,.3) !important;
 }
-div[data-testid="stMetricLabel"] { font-size: .77rem !important; color: #64748b !important; font-weight: 500 !important; text-transform: uppercase !important; letter-spacing: .04rem !important; }
-div[data-testid="stMetricValue"] { font-size: 1.55rem !important; font-weight: 700 !important; color: #0f172a !important; }
+div[data-testid="stMetricLabel"] { font-size: .74rem !important; color: #64748b !important; font-weight: 600 !important; text-transform: uppercase !important; letter-spacing: .06rem !important; }
+div[data-testid="stMetricValue"] { font-size: 1.5rem !important; font-weight: 700 !important; color: #f1f5f9 !important; }
 div[data-testid="stMetricDelta"] { font-size: .77rem !important; font-weight: 600 !important; }
-
-/* ─── Sidebar ─── */
-section[data-testid="stSidebar"] h3 { color: #1e293b !important; font-weight: 700 !important; font-size: .82rem !important; text-transform: uppercase !important; letter-spacing: .06rem !important; }
 
 /* ─── Form ─── */
 div[data-testid="stForm"] {
-    background: white; border-radius: 14px;
-    padding: 1.5rem !important; border: 1px solid #e2e8f0;
-    box-shadow: 0 2px 12px rgba(0,0,0,.04);
+    background: #131929 !important; border-radius: 14px;
+    padding: 1.5rem !important;
+    border: 1px solid rgba(212,168,83,.12);
+    box-shadow: 0 2px 16px rgba(0,0,0,.3);
 }
 div.stFormSubmitButton > button {
-    background: #1d4ed8 !important;
-    color: white !important; border: none !important;
-    border-radius: 8px !important; font-weight: 700 !important;
-    font-size: .95rem !important; letter-spacing: .02rem !important;
-    box-shadow: 0 1px 2px rgba(29,78,216,.3), 0 6px 20px rgba(29,78,216,.22) !important;
+    background: linear-gradient(135deg, #a87820 0%, #d4a853 50%, #e8c870 100%) !important;
+    color: #0a0f1e !important; border: none !important;
+    border-radius: 8px !important; font-weight: 800 !important;
+    font-size: .95rem !important; letter-spacing: .03rem !important;
+    box-shadow: 0 2px 4px rgba(212,168,83,.25), 0 8px 24px rgba(212,168,83,.15) !important;
     width: 100% !important;
 }
 
 /* ─── Progress ─── */
 div[data-testid="stProgress"] > div { border-radius: 100px !important; }
-div[data-testid="stProgress"] > div > div { background: #e2e8f0 !important; }
+div[data-testid="stProgress"] > div > div { background: #1e293b !important; }
 div[data-testid="stProgress"] > div > div > div {
-    background: linear-gradient(90deg, #2563eb, #0ea5e9) !important;
+    background: linear-gradient(90deg, #a87820, #d4a853, #e8c870) !important;
     border-radius: 100px !important;
 }
 
-/* ─── Alerts & Info ─── */
+/* ─── Alerts ─── */
 div.stAlert { border-radius: 10px !important; }
-div[data-testid="stInfo"] { border-radius: 10px !important; }
 
 /* ─── Dividers ─── */
-hr { border-color: #e2e8f0 !important; opacity: 1 !important; margin: 1.5rem 0 !important; }
+hr { border-color: rgba(212,168,83,.12) !important; opacity: 1 !important; margin: 1.5rem 0 !important; }
 
 /* ─── Dataframes ─── */
-div[data-testid="stDataFrame"] { border-radius: 10px !important; overflow: hidden !important; border: 1px solid #e2e8f0 !important; }
-
-/* ─── Radio / Inputs ─── */
-div[data-testid="stRadio"] > label > span { font-weight: 600 !important; }
+div[data-testid="stDataFrame"] { border-radius: 10px !important; overflow: hidden !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -516,29 +505,30 @@ def calc_after_tax_cf(fin: dict, depr: dict, tax_bracket: float = 25.0) -> dict:
 # ──────────────────────────────────────────────────────────────────────────────
 
 def gauge_chart(score: int) -> go.Figure:
-    color = "#10b981" if score >= 80 else "#0ea5e9" if score >= 65 else "#f59e0b" if score >= 50 else "#ef4444"
+    color = "#34d399" if score >= 80 else "#d4a853" if score >= 65 else "#fbbf24" if score >= 50 else "#f87171"
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=score,
         number={"font": {"size": 52, "color": color}, "suffix": "/100"},
-        title={"text": "投資スコア", "font": {"size": 16, "color": "#0c172a"}},
+        title={"text": "投資スコア", "font": {"size": 14, "color": "#64748b"}},
         gauge={
             "axis": {"range": [0, 100], "tickvals": [0, 25, 50, 65, 80, 100],
-                     "tickcolor": "#8a9ab5"},
-            "bar": {"color": color, "thickness": 0.28},
-            "bgcolor": "#f8fafc",
+                     "tickcolor": "#334155", "tickfont": {"color": "#475569", "size": 10}},
+            "bar": {"color": color, "thickness": 0.25},
+            "bgcolor": "#111827",
+            "borderwidth": 0,
             "steps": [
-                {"range": [0, 50],   "color": "#fff1f2"},
-                {"range": [50, 65],  "color": "#fffbeb"},
-                {"range": [65, 80],  "color": "#f0fdf4"},
-                {"range": [80, 100], "color": "#ecfdf5"},
+                {"range": [0,  50],  "color": "rgba(248,113,113,.1)"},
+                {"range": [50, 65],  "color": "rgba(251,191,36,.1)"},
+                {"range": [65, 80],  "color": "rgba(212,168,83,.12)"},
+                {"range": [80, 100], "color": "rgba(52,211,153,.15)"},
             ],
-            "threshold": {"line": {"color": color, "width": 4}, "thickness": 0.85, "value": score},
+            "threshold": {"line": {"color": color, "width": 3}, "thickness": 0.8, "value": score},
         },
     ))
     fig.update_layout(height=290, margin=dict(l=20, r=20, t=40, b=0),
                       paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                      font={"family": "Inter, sans-serif"})
+                      font={"family": "Inter, sans-serif", "color": "#64748b"})
     return fig
 
 
@@ -557,21 +547,22 @@ def breakdown_chart(breakdown: dict) -> go.Figure:
         breakdown.get("market_max", 10),
     ]
     pcts   = [v / m * 100 if m else 0 for v, m in zip(vals, maxs)]
-    colors = ["#10b981" if p >= 70 else "#f59e0b" if p >= 45 else "#ef4444" for p in pcts]
+    colors = ["#34d399" if p >= 70 else "#d4a853" if p >= 45 else "#f87171" for p in pcts]
 
     fig = go.Figure()
-    fig.add_trace(go.Bar(x=cats, y=maxs, marker_color="#edf2f8", showlegend=False, name="最大"))
+    fig.add_trace(go.Bar(x=cats, y=maxs, marker_color="#1e293b", showlegend=False, name="最大"))
     fig.add_trace(go.Bar(
         x=cats, y=vals, marker_color=colors, showlegend=False,
-        text=[f"{v}/{m}" for v, m in zip(vals, maxs)], textposition="outside", name="取得",
+        text=[f"{v}/{m}" for v, m in zip(vals, maxs)],
+        textposition="outside", textfont={"color": "#94a3b8"}, name="取得",
     ))
     fig.update_layout(
         barmode="overlay", height=275,
         margin=dict(l=10, r=10, t=20, b=10),
         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        yaxis={"showgrid": True, "gridcolor": "#f0f4f8"},
-        xaxis={"showgrid": False},
-        font={"size": 11, "family": "Inter, sans-serif"},
+        yaxis={"showgrid": True, "gridcolor": "#1e293b", "tickfont": {"color": "#475569"}},
+        xaxis={"showgrid": False, "tickfont": {"color": "#64748b"}},
+        font={"size": 11, "family": "Inter, sans-serif", "color": "#64748b"},
     )
     return fig
 
@@ -581,25 +572,28 @@ def ten_year_chart(sim: list) -> go.Figure:
     values   = [d["物件価値"]   for d in sim]
     equities = [d["エクイティ"] for d in sim]
     cum_cfs  = [d["累積CF"]     for d in sim]
-    colors   = ["#6ee7b7" if v >= 0 else "#fca5a5" for v in cum_cfs]
+    colors   = ["rgba(52,211,153,.7)" if v >= 0 else "rgba(248,113,113,.7)" for v in cum_cfs]
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=years, y=values,   name="物件価値",
-                             line=dict(color="#0284c7", width=2.5), mode="lines+markers",
-                             marker=dict(size=8, color="#0284c7", line=dict(color="white", width=2))))
+                             line=dict(color="#d4a853", width=2.5), mode="lines+markers",
+                             marker=dict(size=7, color="#d4a853", line=dict(color="#0f172a", width=2))))
     fig.add_trace(go.Scatter(x=years, y=equities, name="エクイティ",
-                             line=dict(color="#10b981", width=2.5), mode="lines+markers",
-                             marker=dict(size=8, color="#10b981", line=dict(color="white", width=2))))
+                             line=dict(color="#34d399", width=2.5), mode="lines+markers",
+                             marker=dict(size=7, color="#34d399", line=dict(color="#0f172a", width=2))))
     fig.add_trace(go.Bar(x=years, y=cum_cfs, name="累積CF", marker_color=colors,
-                         text=[f"${v:,.0f}" for v in cum_cfs], textposition="outside", yaxis="y2"))
+                         text=[f"${v:,.0f}" for v in cum_cfs], textposition="outside",
+                         textfont={"color": "#94a3b8"}, yaxis="y2"))
     fig.update_layout(
-        title="10年間 資産価値・エクイティ・累積CF推移", height=410,
-        margin=dict(l=10, r=75, t=60, b=10),
+        title=dict(text="10年間 資産価値・エクイティ・累積CF推移", font={"color": "#94a3b8", "size": 13}),
+        height=410, margin=dict(l=10, r=75, t=55, b=10),
         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        yaxis =dict(title="金額 ($)", showgrid=True, gridcolor="#f0f4f8"),
-        yaxis2=dict(title="累積CF ($)", overlaying="y", side="right"),
-        legend=dict(orientation="h", y=-0.18),
-        xaxis =dict(showgrid=False),
-        font={"family": "Inter, sans-serif"},
+        yaxis =dict(title="金額 ($)", showgrid=True, gridcolor="#1e293b",
+                    titlefont={"color": "#475569"}, tickfont={"color": "#475569"}),
+        yaxis2=dict(title="累積CF ($)", overlaying="y", side="right",
+                    titlefont={"color": "#475569"}, tickfont={"color": "#475569"}),
+        legend=dict(orientation="h", y=-0.18, font={"color": "#64748b"}),
+        xaxis =dict(showgrid=False, tickfont={"color": "#475569"}),
+        font={"family": "Inter, sans-serif", "color": "#64748b"},
     )
     return fig
 
@@ -652,7 +646,7 @@ def mortgage_rate_chart(market_data: dict) -> go.Figure | None:
     if rates_data.get("error"):
         return None
     fig    = go.Figure()
-    colors = {"MORTGAGE30US": "#0284c7", "MORTGAGE15US": "#10b981"}
+    colors = {"MORTGAGE30US": "#d4a853", "MORTGAGE15US": "#34d399"}
     for series_id, info in rates_data.items():
         if isinstance(info, dict) and "history" in info:
             dates  = [h[0] for h in info["history"]]
@@ -664,14 +658,14 @@ def mortgage_rate_chart(market_data: dict) -> go.Figure | None:
                 mode="lines",
             ))
     fig.update_layout(
-        title="住宅ローン金利推移（直近1年）", height=290,
-        margin=dict(l=10, r=10, t=55, b=10),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        yaxis=dict(title="金利 (%)", ticksuffix="%", showgrid=True, gridcolor="#f0f4f8"),
-        xaxis=dict(showgrid=False),
-        legend=dict(orientation="h", y=-0.25),
-        font=dict(size=10, family="Inter, sans-serif"),
+        title=dict(text="住宅ローン金利推移（直近1年）", font={"color": "#94a3b8", "size": 12}),
+        height=290, margin=dict(l=10, r=10, t=50, b=10),
+        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        yaxis=dict(title="金利 (%)", ticksuffix="%", showgrid=True, gridcolor="#1e293b",
+                   titlefont={"color": "#475569"}, tickfont={"color": "#475569"}),
+        xaxis=dict(showgrid=False, tickfont={"color": "#475569"}),
+        legend=dict(orientation="h", y=-0.3, font={"color": "#64748b"}),
+        font=dict(size=10, family="Inter, sans-serif", color="#64748b"),
     )
     return fig
 
@@ -705,10 +699,10 @@ def show_results(
     c1, c2 = st.columns([1, 1.4])
     with c1:
         st.plotly_chart(gauge_chart(score), use_container_width=True)
-        if   score >= 80: label, color = "優秀 ― 強く推奨",  "#10b981"
-        elif score >= 65: label, color = "良好 ― 推奨",      "#0ea5e9"
-        elif score >= 50: label, color = "普通 ― 要検討",    "#f59e0b"
-        else:             label, color = "要注意 ― 慎重に",  "#ef4444"
+        if   score >= 80: label, color = "優秀 ― 強く推奨",  "#34d399"
+        elif score >= 65: label, color = "良好 ― 推奨",      "#d4a853"
+        elif score >= 50: label, color = "普通 ― 要検討",    "#fbbf24"
+        else:             label, color = "要注意 ― 慎重に",  "#f87171"
         st.markdown(
             f"<div style='text-align:center;font-size:1.1rem;font-weight:700;"
             f"color:{color};margin-top:-.5rem'>{label}</div>",
@@ -999,7 +993,7 @@ def show_results(
             "dom": None,
             "ppsf": None,
             "status": "入力値",
-            "color": "#0369a1",
+            "color": "#d4a853",
         })
         # Zillow Zestimate
         zest = prop.get("zestimate")
@@ -1010,7 +1004,7 @@ def show_results(
                 "dom": None,
                 "ppsf": None,
                 "status": "推定価格",
-                "color": "#006aff",
+                "color": "#60a5fa",
             })
         # Redfin
         if has_redfin:
@@ -1021,7 +1015,7 @@ def show_results(
                 "dom":   redfin_d.get("days_on_market"),
                 "ppsf":  redfin_d.get("price_per_sqft"),
                 "status": redfin_d.get("status", ""),
-                "color": "#d63f32",
+                "color": "#f87171",
             })
         # Realtor.com
         if has_realtor:
@@ -1032,7 +1026,7 @@ def show_results(
                 "dom":   realtor_d.get("days_on_market"),
                 "ppsf":  realtor_d.get("price_per_sqft"),
                 "status": realtor_d.get("status", ""),
-                "color": "#c0392b",
+                "color": "#fca5a5",
             })
 
         cols = st.columns(len(sources))
@@ -1077,9 +1071,8 @@ def show_results(
             bs  = walk.get("bike_score")
             w_color = "#0284c7" if ws >= 70 else "#f97316" if ws >= 50 else "#dc2626"
             walk_html = f"""
-            <div style="background:#f0f9ff;border-left:4px solid #0ea5e9;border-radius:14px;
-                        padding:1rem 1.4rem;margin-bottom:1rem;display:flex;gap:2rem;align-items:center;
-                        box-shadow:0 2px 8px rgba(14,165,233,.1)">
+            <div style="background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.2);border-radius:12px;
+                        padding:1rem 1.4rem;margin-bottom:1rem;display:flex;gap:2rem;align-items:center;">
                 <div><span style="font-size:1.5rem;font-weight:700;color:{w_color}">{ws}</span>
                      <span style="font-size:.82rem;color:#475569;margin-left:.3rem">Walk Score<br>{walk.get("walk_desc","")}</span></div>
             """
@@ -1099,8 +1092,8 @@ def show_results(
             ficon  = "🚨" if flood.get("insurance_required") else "✅"
             fbg    = "#ffebee" if flood.get("insurance_required") else "#e8f5e9"
             st.markdown(f"""
-            <div style="background:{fbg};border-left:4px solid {fcolor};border-radius:14px;
-                        padding:1rem 1.4rem;margin-bottom:1rem;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+            <div style="background:rgba(0,0,0,.2);border:1px solid {fcolor}44;border-left:4px solid {fcolor};border-radius:12px;
+                        padding:1rem 1.4rem;margin-bottom:1rem;">
                 <span style="font-weight:700;color:{fcolor};font-size:.95rem">
                     {ficon} 洪水リスク: ゾーン {flood.get('zone','X')} ― {flood.get('description','')}
                 </span>
@@ -1177,9 +1170,9 @@ def show_results(
             car_dep  = transit_det.get("car_dependent", True)
             if car_dep:
                 st.markdown("""
-                <div style="background:#fffbeb;border-left:4px solid #f59e0b;border-radius:14px;
-                            padding:1rem 1.4rem;margin-top:.8rem;box-shadow:0 2px 8px rgba(245,158,11,.1)">
-                    <span style="font-weight:700;color:#b45309">🚗 自動車依存エリア</span>
+                <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:12px;
+                            padding:1rem 1.4rem;margin-top:.8rem;">
+                    <span style="font-weight:700;color:#fbbf24">🚗 自動車依存エリア</span>
                     <span style="font-size:.88rem;color:#475569;margin-left:.6rem">
                         半径3マイル以内に公共交通機関の停留所なし（バス・鉄道・地下鉄）。
                         車なしでの生活は困難です。入居者層は自動車保有世帯が前提。
@@ -1208,11 +1201,11 @@ def show_results(
             is_fbi          = "FBI" in source
 
             if safety_score >= 70:
-                c_color, c_bg, c_icon = "#059669", "#e8f5e9", "✅"
+                c_color, c_bg, c_icon = "#34d399", "rgba(52,211,153,.08)", "✅"
             elif safety_score >= 40:
-                c_color, c_bg, c_icon = "#f97316", "#fff3e0", "⚠️"
+                c_color, c_bg, c_icon = "#fbbf24", "rgba(251,191,36,.08)", "⚠️"
             else:
-                c_color, c_bg, c_icon = "#dc2626", "#ffebee", "🚨"
+                c_color, c_bg, c_icon = "#f87171", "rgba(248,113,113,.08)", "🚨"
 
             crimes_str = (" / ".join(f"{c['type']}({c['count']}件)" for c in top_crimes[:4])
                           if top_crimes else "データなし")
@@ -1232,8 +1225,8 @@ def show_results(
                 src_str    = f"総件数: <strong>{total_incidents}件</strong>（出典: Chicago Data Portal）"
 
             st.markdown(f"""
-            <div style="background:{c_bg};border-left:4px solid {c_color};border-radius:14px;
-                        padding:1rem 1.4rem;margin-top:1rem;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+            <div style="background:{c_bg};border:1px solid {c_color}44;border-left:4px solid {c_color};border-radius:12px;
+                        padding:1rem 1.4rem;margin-top:1rem;">
                 <div style="font-weight:700;color:{c_color};font-size:1rem">
                     {c_icon} 安全スコア: {safety_score}/100 ― {safety_label}
                 </div>
@@ -1266,8 +1259,8 @@ def show_results(
                 est_color = "#059669" if est_safety >= 70 else "#f97316"
                 county = pop_growth.get("county_name", "") if pop_growth and not pop_growth.get("error") else ""
                 st.markdown(f"""
-                <div style="background:#f5f3ff;border-left:4px solid #7c3aed;border-radius:14px;
-                            padding:1rem 1.4rem;margin-top:1rem;box-shadow:0 2px 8px rgba(124,58,237,.1)">
+                <div style="background:rgba(124,58,237,.09);border:1px solid rgba(124,58,237,.25);border-radius:12px;
+                            padding:1rem 1.4rem;margin-top:1rem;">
                     <div style="font-weight:700;color:#7c3aed;font-size:1rem">
                         📊 安全性 推定スコア: {int(est_safety)}/100 ― {est_label}
                     </div>
@@ -1327,7 +1320,7 @@ def show_results(
             bar_color = "#064e3b" if g2 >= 5 else "#10b981" if g2 >= 3 else "#f59e0b" if g2 >= 0 else "#ef4444"
             bar_width = min(abs(g2) * 8, 100)
             st.markdown(f"""
-            <div style="background:#f8fafc;border:1px solid #dde5f0;border-radius:14px;padding:.9rem 1.2rem;margin-top:.5rem">
+            <div style="background:#111827;border:1px solid rgba(212,168,83,.12);border-radius:12px;padding:.9rem 1.2rem;margin-top:.5rem;">
                 <div style="font-size:.85rem;color:#475569;margin-bottom:.4rem">
                     📈 <strong>{pop_growth.get('county_name','')}</strong> 人口増加トレンド
                     <span style="font-size:.75rem;color:#94a3b8;margin-left:.5rem">出典: US Census Bureau Population Estimates</span>
@@ -1503,7 +1496,7 @@ def show_results(
 
                 link_html = (
                     f'<a href="{url}" target="_blank" rel="noopener" '
-                    f'style="color:#1d4ed8;text-decoration:none;font-weight:600;'
+                    f'style="color:#d4a853;text-decoration:none;font-weight:600;'
                     f'font-size:.88rem;line-height:1.35">{ttl}</a>'
                     if url else
                     f'<span style="font-weight:600;font-size:.88rem">{ttl}</span>'
@@ -1514,7 +1507,7 @@ def show_results(
                 meta_str = " · ".join(meta)
 
                 col.markdown(
-                    f"""<div style="background:white;border:1px solid #e2e8f0;
+                    f"""<div style="background:#1a2035;border:1px solid rgba(212,168,83,.1);
                         border-left:4px solid #2563eb;border-radius:10px;
                         padding:.9rem 1.1rem;margin-bottom:.7rem;min-height:110px">
                         {link_html}
@@ -1581,7 +1574,7 @@ def show_results(
                     border_col = "#0284c7" if lang == "ja" else "#c62828" if "bloomberg" in src.lower() or "wsj" in src.lower() else "#059669"
                     link_html = (
                         f'<a href="{url}" target="_blank" rel="noopener" '
-                        f'style="color:#1d4ed8;text-decoration:none;font-weight:600;'
+                        f'style="color:#d4a853;text-decoration:none;font-weight:600;'
                         f'font-size:.86rem;line-height:1.35">{ttl}</a>'
                         if url else
                         f'<span style="font-weight:600;font-size:.86rem">{ttl}</span>'
@@ -1591,7 +1584,7 @@ def show_results(
                     if src:  meta.append(src)
 
                     col.markdown(
-                        f"""<div style="background:white;border:1px solid #e2e8f0;
+                        f"""<div style="background:#1a2035;border:1px solid rgba(212,168,83,.1);
                             border-left:4px solid {border_col};border-radius:10px;
                             padding:.85rem 1rem;margin-bottom:.65rem;min-height:115px">
                             {link_html}
