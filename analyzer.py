@@ -30,8 +30,8 @@ class PropertyAnalyzer:
         )
         try:
             message = self.client.messages.create(
-                model="claude-haiku-4-5-20251001",  # 最安モデル。Sonnetに変えると高品質
-                max_tokens=4096,
+                model="claude-haiku-4-5-20251001",
+                max_tokens=8096,          # プロンプトが長いため増量
                 system=SYSTEM_PROMPT,
                 messages=[{"role": "user", "content": prompt}],
             )
@@ -392,26 +392,23 @@ class PropertyAnalyzer:
             "",
         ]
 
-        def _add_articles(header: str, articles: list, max_n: int = 5):
+        def _add_articles(header: str, articles: list, max_n: int = 4):
             if not articles:
                 return
             lines.append(header)
             for i, a in enumerate(articles[:max_n], 1):
-                title   = a.get("title", "")
-                date    = a.get("date", "")
-                source  = a.get("source", "")
-                summary = a.get("summary", "")
-                line = f"  {i}. [{date}] {title}"
+                title  = a.get("title", "")
+                date   = a.get("date", "")
+                source = a.get("source", "")
+                line   = f"  {i}. [{date}] {title}"
                 if source:
                     line += f"  ({source})"
-                if summary:
-                    line += f"\n     → {summary[:180]}"
                 lines.append(line)
             lines.append("")
 
-        _add_articles("【不動産市場・住宅市場・金利動向 (CNBC/Bloomberg/WSJ/NYT/Redfin)】", mkt)
-        _add_articles("【投資・ディール情報 (The Real Deal/RealEstateNews)】", inv)
-        _add_articles("【日本語ニュース（日本人投資家の視点）】", jp)
+        _add_articles("【不動産市場・金利動向 (CNBC/Bloomberg/WSJ/NYT/Redfin)】", mkt)
+        _add_articles("【投資・ディール情報】", inv)
+        _add_articles("【日本語ニュース】", jp)
 
         return "\n".join(lines)
 
@@ -433,31 +430,52 @@ class PropertyAnalyzer:
             "※ 記事は英語。内容を把握して日本語で市場見通しに反映してください。",
             "",
         ]
-        for i, a in enumerate(articles[:8], 1):
-            title   = a.get("title", "")
-            date    = a.get("date", "")
-            source  = a.get("source", "")
-            summary = a.get("summary", "")
-            line = f"{i}. [{date}] {title}"
+        for i, a in enumerate(articles[:5], 1):   # 5件に制限してトークン節約
+            title  = a.get("title", "")
+            date   = a.get("date", "")
+            source = a.get("source", "")
+            line   = f"{i}. [{date}] {title}"
             if source:
                 line += f"  ({source})"
-            if summary:
-                line += f"\n   → {summary[:200]}"
             lines.append(line)
 
         return "\n".join(lines)
 
     @staticmethod
     def _parse_json(text: str) -> dict:
-        """Claude レスポンスから JSON を抽出"""
+        """Claude レスポンスから JSON を抽出（複数パターンで堅牢化）"""
+        # 1. そのまま解析
         try:
             return json.loads(text.strip())
         except json.JSONDecodeError:
             pass
-        match = re.search(r"\{[\s\S]+\}", text)
-        if match:
+        # 2. ```json ... ``` コードブロック内を抽出
+        m = re.search(r"```(?:json)?\s*(\{[\s\S]+?\})\s*```", text)
+        if m:
             try:
-                return json.loads(match.group())
+                return json.loads(m.group(1))
             except json.JSONDecodeError:
                 pass
+        # 3. 最初の { から最後の } を抽出（最も広い範囲）
+        start = text.find("{")
+        end   = text.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            try:
+                return json.loads(text[start:end + 1])
+            except json.JSONDecodeError:
+                pass
+        # 4. 途中で切れた JSON を修復して解析
+        if start != -1:
+            partial = text[start:]
+            # 未閉じブレースをカウントして閉じる
+            depth = 0
+            for i, ch in enumerate(partial):
+                if ch == "{": depth += 1
+                elif ch == "}": depth -= 1
+            if depth > 0:
+                try:
+                    fixed = partial + "}" * depth
+                    return json.loads(fixed)
+                except json.JSONDecodeError:
+                    pass
         return {"error": "JSON解析失敗", "raw": text[:500], "investment_score": 0}

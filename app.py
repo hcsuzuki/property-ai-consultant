@@ -21,219 +21,250 @@ st.set_page_config(
 # ──────────────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-/* ═══════════════════════════════════════════════════════════════
-   PROPERTY AI CONSULTANT  ·  Quiet Luxury Dark — Gold Edition
-   Inspired by: Compass, Sotheby's, Christie's RE, Bloomberg
-   ═══════════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════════
+   PROPERTY AI CONSULTANT  ·  Fashion Editorial Dark
+   Inspired by: Ssense · W Magazine · Highsnobiety · Celine Digital
+   ════════════════════════════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
-/* ─── Font Reset ─── */
 html, body, [class*="css"], .stApp {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
 }
 
 /* ─── Page ─── */
-[data-testid="stAppViewContainer"] { background: #0f172a !important; }
+[data-testid="stAppViewContainer"] { background: #08090f !important; }
 [data-testid="stHeader"] { display: none !important; }
-.main .block-container { padding-top: 1.2rem !important; padding-bottom: 3rem !important; }
+.main .block-container { padding-top: 0 !important; padding-bottom: 5rem !important; }
 
 /* ─── Sidebar ─── */
 section[data-testid="stSidebar"] {
-    background: #0a0f1e !important;
-    border-right: 1px solid rgba(212,168,83,.18) !important;
+    background: #06070d !important;
+    border-right: 1px solid rgba(255,255,255,.05) !important;
 }
 section[data-testid="stSidebar"] h3 {
-    color: #d4a853 !important; font-weight: 700 !important;
-    font-size: .75rem !important; text-transform: uppercase !important;
-    letter-spacing: .12rem !important;
+    color: #c8a45a !important; font-weight: 600 !important;
+    font-size: .58rem !important; text-transform: uppercase !important;
+    letter-spacing: .22rem !important;
 }
-section[data-testid="stSidebar"] strong { color: #e2e8f0 !important; }
+section[data-testid="stSidebar"] strong { color: #8090a0 !important; }
 
-/* ─── Main Header ─── */
+/* ─── Header — Magazine Masthead ─── */
 .main-header {
-    text-align: center; padding: 3.6rem 2.5rem 3.2rem;
-    background: linear-gradient(160deg, #050d1f 0%, #0f172a 45%, #162040 80%, #0a1628 100%);
-    color: #f1f5f9; border-radius: 18px; margin-bottom: 2.5rem;
+    text-align: center;
+    padding: 5rem 2.5rem 4.5rem;
+    background: #08090f;
+    border-radius: 0;
+    margin: 0 0 4rem;
     position: relative; overflow: hidden;
-    border: 1px solid rgba(212,168,83,.2);
-    box-shadow: 0 0 0 1px rgba(255,255,255,.04) inset, 0 30px 60px rgba(0,0,0,.5);
+    border-top: 2px solid #c8a45a;
+    border-bottom: 1px solid rgba(255,255,255,.06);
 }
 .main-header::before {
-    content: ''; position: absolute; inset: 0;
-    background-image: radial-gradient(rgba(212,168,83,.07) 1px, transparent 1px);
-    background-size: 28px 28px; pointer-events: none;
-}
-.main-header::after {
-    content: ''; position: absolute;
-    top: -15%; right: 8%; width: 480px; height: 480px;
-    background: radial-gradient(circle, rgba(212,168,83,.14) 0%, transparent 60%);
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 65% 40%, rgba(200,164,90,.07) 0%, transparent 60%);
     pointer-events: none;
 }
-.main-header .orb {
-    position: absolute; bottom: -20%; left: 5%; width: 380px; height: 380px;
-    background: radial-gradient(circle, rgba(14,165,233,.1) 0%, transparent 60%);
-    pointer-events: none;
-}
+.main-header .orb { display: none; }
 .main-header .badge {
-    display: inline-flex; align-items: center; gap: .35rem;
-    background: rgba(212,168,83,.1); border: 1px solid rgba(212,168,83,.35);
-    border-radius: 100px; padding: .28rem .95rem;
-    font-size: .67rem; font-weight: 700; letter-spacing: .16rem;
-    text-transform: uppercase; color: #d4a853;
-    margin-bottom: .9rem; position: relative; z-index: 1;
+    display: inline-block;
+    font-size: .55rem; font-weight: 600;
+    letter-spacing: .32rem; text-transform: uppercase;
+    color: #c8a45a; margin-bottom: 1.6rem;
+    position: relative; z-index: 1;
 }
 .main-header h1 {
-    font-size: 2.65rem; font-weight: 900; margin-bottom: .5rem; letter-spacing: -.5px;
+    font-size: 3.2rem; font-weight: 900;
+    margin: 0 0 .9rem; letter-spacing: -.7px;
+    color: #ede9e4; line-height: 1.05;
     position: relative; z-index: 1;
-    background: linear-gradient(135deg, #ffffff 0%, #ffe8a3 40%, #d4a853 80%, #e8c870 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
 }
 .main-header .sub {
-    font-size: .96rem; color: #94a3b8; margin: 0; position: relative; z-index: 1;
+    font-size: .7rem; color: #2e3240; margin: 0;
+    letter-spacing: .18rem; text-transform: uppercase; font-weight: 600;
+    position: relative; z-index: 1;
 }
 .main-header .powered {
-    font-size: .68rem; color: #334155; margin-top: .65rem;
-    letter-spacing: .05rem; position: relative; z-index: 1;
+    font-size: .6rem; color: #1c1f28; margin-top: .9rem;
+    letter-spacing: .06rem; position: relative; z-index: 1;
 }
 
 /* ─── Section Titles ─── */
 .section-title {
-    font-size: .82rem; font-weight: 800; color: #94a3b8;
-    margin: 2.8rem 0 1.2rem;
-    display: flex; align-items: center; gap: .6rem;
-    padding-bottom: .6rem; border-bottom: 1px solid rgba(212,168,83,.12);
-    text-transform: uppercase; letter-spacing: .1rem;
+    font-size: .58rem; font-weight: 700; color: #2e3040;
+    margin: 4rem 0 1.8rem;
+    display: flex; align-items: center; gap: .9rem;
+    letter-spacing: .28rem; text-transform: uppercase;
+    border: none; padding: 0;
 }
 .section-title::before {
-    content: ''; flex-shrink: 0; width: 3px; height: 15px;
-    background: linear-gradient(180deg, #d4a853 0%, #f0c96a 100%);
-    border-radius: 2px;
+    content: '';
+    flex-shrink: 0; width: 14px; height: 1px;
+    background: #c8a45a;
+}
+.section-title::after {
+    content: '';
+    flex: 1; height: 1px;
+    background: rgba(255,255,255,.05);
 }
 
-/* ─── Cards ─── */
+/* ─── Cards — no box, let content breathe ─── */
 .card {
-    background: #1a2035;
-    border-radius: 14px; padding: 1.3rem 1.55rem;
-    border: 1px solid rgba(212,168,83,.1);
-    box-shadow: 0 2px 8px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
-    margin-bottom: 1rem; height: 100%;
+    background: transparent;
+    border: none; border-radius: 0;
+    border-top: 1px solid rgba(255,255,255,.05);
+    box-shadow: none;
+    padding: 1.6rem 0; margin-bottom: 0; height: 100%;
     word-wrap: break-word; overflow-wrap: break-word; overflow: hidden;
 }
 .card h4 {
-    color: #d4a853; font-size: .75rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .1rem;
-    margin-bottom: .85rem; padding-bottom: .6rem;
-    border-bottom: 1px solid rgba(212,168,83,.15);
+    color: #2a2d38; font-size: .56rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .24rem;
+    margin-bottom: 1.2rem; padding-bottom: 0; border-bottom: none;
 }
 
-/* ─── Data Rows ─── */
+/* ─── Data Rows — editorial table ─── */
 .row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: .46rem 0; border-bottom: 1px solid rgba(255,255,255,.05);
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: .54rem 0;
+    border-bottom: 1px solid rgba(255,255,255,.04);
 }
 .row:last-child { border-bottom: none; }
-.row-label { color: #64748b; font-size: .83rem; font-weight: 400; }
-.row-value { font-weight: 600; color: #e2e8f0; font-size: .88rem; }
+.row-label { color: #2a2e3a; font-size: .78rem; font-weight: 400; flex: 1; }
+.row-value { font-weight: 500; color: #8090a4; font-size: .86rem; text-align: right; }
 
 /* ─── Recommendation Card ─── */
 .rec-card {
-    padding: 1.7rem 2rem; border-radius: 14px;
-    border: 1px solid rgba(255,255,255,.07); border-left: 4px solid;
-    background: #1a2035;
-    box-shadow: 0 4px 20px rgba(0,0,0,.35);
-    margin-bottom: 1.5rem;
+    padding: 2rem 2rem 2rem 1.8rem; border-radius: 0;
+    border: none; border-left: 2px solid;
+    background: rgba(255,255,255,.015);
+    margin-bottom: 2rem;
     word-wrap: break-word; overflow-wrap: break-word; overflow: hidden;
 }
-.rec-hold  { border-left-color: #34d399 !important; background: linear-gradient(to right, rgba(52,211,153,.07) 0%, #1a2035 55%) !important; }
-.rec-sell  { border-left-color: #d4a853 !important; background: linear-gradient(to right, rgba(212,168,83,.07) 0%, #1a2035 55%) !important; }
-.rec-check { border-left-color: #38bdf8 !important; background: linear-gradient(to right, rgba(56,189,248,.06) 0%, #1a2035 55%) !important; }
+.rec-hold  { border-left-color: #4ade80 !important; }
+.rec-sell  { border-left-color: #c8a45a !important; }
+.rec-check { border-left-color: #38bdf8 !important; }
 
-/* ─── Tags ─── */
+/* ─── Tags — left-border list style ─── */
 .tag-good {
-    background: rgba(52,211,153,.08); color: #6ee7b7;
-    padding: .4rem .85rem; border-radius: 6px; margin-bottom: .4rem;
-    font-size: .83rem; display: block;
-    border: 1px solid rgba(52,211,153,.2); font-weight: 500;
+    background: transparent; color: #4ade80;
+    padding: .28rem 0 .28rem .75rem; border-radius: 0; margin-bottom: .4rem;
+    font-size: .8rem; display: block;
+    border: none; border-left: 2px solid rgba(74,222,128,.4);
+    font-weight: 400;
 }
 .tag-risk {
-    background: rgba(251,191,36,.08); color: #fcd34d;
-    padding: .4rem .85rem; border-radius: 6px; margin-bottom: .4rem;
-    font-size: .83rem; display: block;
-    border: 1px solid rgba(251,191,36,.2); font-weight: 500;
+    background: transparent; color: #f59e0b;
+    padding: .28rem 0 .28rem .75rem; border-radius: 0; margin-bottom: .4rem;
+    font-size: .8rem; display: block;
+    border: none; border-left: 2px solid rgba(245,158,11,.4);
+    font-weight: 400;
 }
 
 /* ─── Disclaimer ─── */
 .disclaimer {
-    font-size: .73rem; color: #334155;
-    padding: 1.2rem 1.6rem;
-    background: #111827; border: 1px solid rgba(255,255,255,.06);
-    border-radius: 10px; margin-top: 3rem; line-height: 1.9;
+    font-size: .68rem; color: #1e2028;
+    padding: 2.5rem 0; background: transparent;
+    border: none; border-top: 1px solid rgba(255,255,255,.04);
+    border-radius: 0; margin-top: 5rem; line-height: 2;
 }
 
 /* ─── Expanders ─── */
 div[data-testid="stExpander"] {
-    border: 1px solid rgba(212,168,83,.12) !important;
-    border-radius: 10px !important; margin-bottom: .4rem !important;
-    background: #1a2035 !important; overflow: hidden !important;
+    border: none !important;
+    border-top: 1px solid rgba(255,255,255,.05) !important;
+    border-radius: 0 !important; margin-bottom: 0 !important;
+    background: transparent !important; overflow: hidden !important;
 }
 
-/* ─── Tabs ─── */
+/* ─── Tabs — underline style ─── */
 .stTabs [data-baseweb="tab-list"] {
-    background: #111827; border-radius: 10px; padding: 3px; gap: 2px;
+    background: transparent;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+    border-radius: 0; padding: 0 0 0 0; gap: 0;
 }
 .stTabs [data-baseweb="tab"] {
-    border-radius: 7px; font-weight: 600 !important; font-size: .83rem !important;
-    color: #475569 !important;
+    border-radius: 0;
+    border-bottom: 2px solid transparent !important;
+    font-weight: 600 !important; font-size: .65rem !important;
+    color: #2e3040 !important; text-transform: uppercase !important;
+    letter-spacing: .12rem !important; padding: .65rem 1.1rem !important;
+    margin-bottom: -1px;
 }
 .stTabs [aria-selected="true"] {
-    background: #1a2035 !important; color: #d4a853 !important;
-    border: 1px solid rgba(212,168,83,.2) !important;
+    background: transparent !important; color: #c8a45a !important;
+    border-bottom-color: #c8a45a !important;
 }
 
-/* ─── Metrics ─── */
+/* ─── Metrics — editorial stat ─── */
 div[data-testid="stMetric"] {
-    background: #1a2035 !important; border-radius: 12px !important;
-    padding: 1rem 1.2rem !important;
-    border: 1px solid rgba(212,168,83,.1) !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,.3) !important;
+    background: transparent !important; border-radius: 0 !important;
+    padding: 1.2rem 0 !important; border: none !important;
+    border-bottom: 1px solid rgba(255,255,255,.05) !important;
+    box-shadow: none !important;
 }
-div[data-testid="stMetricLabel"] { font-size: .74rem !important; color: #64748b !important; font-weight: 600 !important; text-transform: uppercase !important; letter-spacing: .06rem !important; }
-div[data-testid="stMetricValue"] { font-size: 1.5rem !important; font-weight: 700 !important; color: #f1f5f9 !important; }
-div[data-testid="stMetricDelta"] { font-size: .77rem !important; font-weight: 600 !important; }
+div[data-testid="stMetricLabel"] {
+    font-size: .55rem !important; color: #242730 !important;
+    font-weight: 700 !important; text-transform: uppercase !important;
+    letter-spacing: .22rem !important;
+}
+div[data-testid="stMetricValue"] {
+    font-size: 1.65rem !important; font-weight: 700 !important;
+    color: #c8c4be !important;
+}
+div[data-testid="stMetricDelta"] { font-size: .73rem !important; font-weight: 500 !important; }
 
 /* ─── Form ─── */
 div[data-testid="stForm"] {
-    background: #131929 !important; border-radius: 14px;
-    padding: 1.5rem !important;
-    border: 1px solid rgba(212,168,83,.12);
-    box-shadow: 0 2px 16px rgba(0,0,0,.3);
+    background: transparent !important; border-radius: 0;
+    padding: 1.5rem 0 !important;
+    border: none !important;
+    border-top: 1px solid rgba(255,255,255,.06) !important;
+    box-shadow: none !important;
 }
+
+/* Editorial underline inputs */
+[data-testid="stTextInput"] > div > div,
+[data-testid="stNumberInput"] > div > div {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid rgba(255,255,255,.1) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+[data-testid="stTextInput"] input,
+[data-testid="stNumberInput"] input {
+    background: transparent !important;
+    color: #a8b0be !important;
+    font-size: .96rem !important; font-weight: 500 !important;
+    padding-left: 0 !important;
+}
+
+/* Submit button — editorial bar */
 div.stFormSubmitButton > button {
-    background: linear-gradient(135deg, #a87820 0%, #d4a853 50%, #e8c870 100%) !important;
-    color: #0a0f1e !important; border: none !important;
-    border-radius: 8px !important; font-weight: 800 !important;
-    font-size: .95rem !important; letter-spacing: .03rem !important;
-    box-shadow: 0 2px 4px rgba(212,168,83,.25), 0 8px 24px rgba(212,168,83,.15) !important;
-    width: 100% !important;
+    background: #c8a45a !important;
+    color: #08090f !important; border: none !important;
+    border-radius: 2px !important; font-weight: 800 !important;
+    font-size: .68rem !important; letter-spacing: .22rem !important;
+    text-transform: uppercase !important;
+    box-shadow: none !important; width: 100% !important;
+    padding: 1.1rem 0 !important;
 }
 
 /* ─── Progress ─── */
-div[data-testid="stProgress"] > div { border-radius: 100px !important; }
-div[data-testid="stProgress"] > div > div { background: #1e293b !important; }
+div[data-testid="stProgress"] > div { border-radius: 0 !important; }
+div[data-testid="stProgress"] > div > div {
+    background: rgba(255,255,255,.05) !important; border-radius: 0 !important;
+}
 div[data-testid="stProgress"] > div > div > div {
-    background: linear-gradient(90deg, #a87820, #d4a853, #e8c870) !important;
-    border-radius: 100px !important;
+    background: #c8a45a !important; border-radius: 0 !important;
 }
 
-/* ─── Alerts ─── */
-div.stAlert { border-radius: 10px !important; }
-
-/* ─── Dividers ─── */
-hr { border-color: rgba(212,168,83,.12) !important; opacity: 1 !important; margin: 1.5rem 0 !important; }
-
-/* ─── Dataframes ─── */
-div[data-testid="stDataFrame"] { border-radius: 10px !important; overflow: hidden !important; }
+/* ─── Misc ─── */
+div.stAlert { border-radius: 2px !important; }
+hr { border-color: rgba(255,255,255,.05) !important; opacity: 1 !important; margin: 2.5rem 0 !important; }
+div[data-testid="stDataFrame"] { border-radius: 0 !important; overflow: hidden !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -1672,14 +1703,13 @@ def show_results(
 def main():
     st.markdown("""
     <div class="main-header">
-        <div class="orb"></div>
-        <div class="badge">🏠 USA REAL ESTATE ANALYTICS PLATFORM</div>
+        <div class="badge">USA &nbsp;·&nbsp; Real Estate Analytics Platform</div>
         <h1>AI不動産投資コンサルタント</h1>
-        <p class="sub">日本人投資家向け 米国不動産 投資分析プラットフォーム</p>
+        <p class="sub">Japan Investor &nbsp;·&nbsp; Intelligent Property Analysis</p>
         <p class="powered">
-            Powered by Claude AI &nbsp;·&nbsp; Zillow &nbsp;·&nbsp; Google Maps &nbsp;·&nbsp;
-            FEMA &nbsp;·&nbsp; Census &nbsp;·&nbsp; FRED &nbsp;·&nbsp;
-            CNBC &nbsp;·&nbsp; Bloomberg &nbsp;·&nbsp; WSJ &nbsp;·&nbsp; NYT &nbsp;·&nbsp; Redfin
+            Claude AI &ensp;·&ensp; Zillow &ensp;·&ensp; Google Maps &ensp;·&ensp;
+            FEMA &ensp;·&ensp; Census &ensp;·&ensp; FRED &ensp;·&ensp;
+            CNBC &ensp;·&ensp; Bloomberg &ensp;·&ensp; WSJ &ensp;·&ensp; Redfin
         </p>
     </div>
     """, unsafe_allow_html=True)
