@@ -21,10 +21,10 @@ st.set_page_config(
 # ──────────────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-/* ════════════════════════════════════════════════════════════════
-   PROPERTY AI CONSULTANT  ·  Fashion Editorial Dark
-   Inspired by: Ssense · W Magazine · Highsnobiety · Celine Digital
-   ════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════
+   PROPERTY AI CONSULTANT  ·  Clean Professional Light
+   Reference: Realogixs.com · Awwwards · Modern Real Estate SaaS
+   ═══════════════════════════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
@@ -33,238 +33,188 @@ html, body, [class*="css"], .stApp {
 }
 
 /* ─── Page ─── */
-[data-testid="stAppViewContainer"] { background: #08090f !important; }
+[data-testid="stAppViewContainer"] { background: #f3f4f8 !important; }
 [data-testid="stHeader"] { display: none !important; }
-.main .block-container { padding-top: 0 !important; padding-bottom: 5rem !important; }
+.main .block-container { padding-top: 1.5rem !important; padding-bottom: 4rem !important; }
 
 /* ─── Sidebar ─── */
 section[data-testid="stSidebar"] {
-    background: #06070d !important;
-    border-right: 1px solid rgba(255,255,255,.05) !important;
+    background: #ffffff !important;
+    border-right: 1px solid #e5e7eb !important;
+    box-shadow: 2px 0 8px rgba(0,0,0,.04);
 }
 section[data-testid="stSidebar"] h3 {
-    color: #c8a45a !important; font-weight: 600 !important;
-    font-size: .58rem !important; text-transform: uppercase !important;
-    letter-spacing: .22rem !important;
+    color: #374151 !important; font-weight: 700 !important;
+    font-size: .72rem !important; text-transform: uppercase !important;
+    letter-spacing: .1rem !important;
 }
-section[data-testid="stSidebar"] strong { color: #8090a0 !important; }
+section[data-testid="stSidebar"] strong { color: #1f2937 !important; }
 
-/* ─── Header — Magazine Masthead ─── */
+/* ─── Header — Dark Navy on Light Page ─── */
 .main-header {
     text-align: center;
-    padding: 5rem 2.5rem 4.5rem;
-    background: #08090f;
-    border-radius: 0;
-    margin: 0 0 4rem;
+    padding: 3rem 2rem 2.8rem;
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 55%, #1e40af 100%);
+    color: white; border-radius: 16px; margin-bottom: 2.2rem;
     position: relative; overflow: hidden;
-    border-top: 2px solid #c8a45a;
-    border-bottom: 1px solid rgba(255,255,255,.06);
+    box-shadow: 0 4px 24px rgba(15,23,42,.18);
 }
 .main-header::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: radial-gradient(ellipse at 65% 40%, rgba(200,164,90,.07) 0%, transparent 60%);
-    pointer-events: none;
+    content: ''; position: absolute; inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px);
+    background-size: 24px 24px; pointer-events: none;
 }
 .main-header .orb { display: none; }
 .main-header .badge {
     display: inline-block;
-    font-size: .55rem; font-weight: 600;
-    letter-spacing: .32rem; text-transform: uppercase;
-    color: #c8a45a; margin-bottom: 1.6rem;
-    position: relative; z-index: 1;
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18);
+    border-radius: 100px; padding: .3rem 1rem;
+    font-size: .68rem; font-weight: 600; letter-spacing: .1rem; text-transform: uppercase;
+    color: #93c5fd; margin-bottom: .9rem; position: relative; z-index: 1;
 }
 .main-header h1 {
-    font-size: 3.2rem; font-weight: 900;
-    margin: 0 0 .9rem; letter-spacing: -.7px;
-    color: #ede9e4; line-height: 1.05;
-    position: relative; z-index: 1;
+    font-size: 2.4rem; font-weight: 800; margin: 0 0 .5rem; letter-spacing: -.4px;
+    color: #ffffff; position: relative; z-index: 1;
 }
 .main-header .sub {
-    font-size: .7rem; color: #2e3240; margin: 0;
-    letter-spacing: .18rem; text-transform: uppercase; font-weight: 600;
-    position: relative; z-index: 1;
+    font-size: .9rem; color: rgba(255,255,255,.7); margin: 0; position: relative; z-index: 1;
 }
 .main-header .powered {
-    font-size: .6rem; color: #1c1f28; margin-top: .9rem;
-    letter-spacing: .06rem; position: relative; z-index: 1;
+    font-size: .7rem; color: rgba(255,255,255,.3); margin-top: .6rem;
+    letter-spacing: .04rem; position: relative; z-index: 1;
 }
 
 /* ─── Section Titles ─── */
 .section-title {
-    font-size: .58rem; font-weight: 700; color: #2e3040;
-    margin: 4rem 0 1.8rem;
-    display: flex; align-items: center; gap: .9rem;
-    letter-spacing: .28rem; text-transform: uppercase;
-    border: none; padding: 0;
+    font-size: 1rem; font-weight: 700; color: #111827;
+    margin: 2.5rem 0 1.2rem;
+    display: flex; align-items: center; gap: .7rem;
+    padding-bottom: .75rem; border-bottom: 2px solid #f3f4f6;
 }
 .section-title::before {
-    content: '';
-    flex-shrink: 0; width: 14px; height: 1px;
-    background: #c8a45a;
-}
-.section-title::after {
-    content: '';
-    flex: 1; height: 1px;
-    background: rgba(255,255,255,.05);
+    content: ''; flex-shrink: 0; width: 4px; height: 18px;
+    background: linear-gradient(180deg, #2563eb 0%, #60a5fa 100%);
+    border-radius: 2px;
 }
 
-/* ─── Cards — no box, let content breathe ─── */
+/* ─── Cards ─── */
 .card {
-    background: transparent;
-    border: none; border-radius: 0;
-    border-top: 1px solid rgba(255,255,255,.05);
-    box-shadow: none;
-    padding: 1.6rem 0; margin-bottom: 0; height: 100%;
+    background: #ffffff; border-radius: 12px;
+    padding: 1.4rem 1.6rem;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05), 0 4px 12px rgba(0,0,0,.04);
+    margin-bottom: 1rem; height: 100%;
     word-wrap: break-word; overflow-wrap: break-word; overflow: hidden;
 }
 .card h4 {
-    color: #2a2d38; font-size: .56rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .24rem;
-    margin-bottom: 1.2rem; padding-bottom: 0; border-bottom: none;
+    color: #374151; font-size: .78rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .07rem;
+    margin-bottom: .9rem; padding-bottom: .6rem;
+    border-bottom: 1px solid #f3f4f6;
 }
 
-/* ─── Data Rows — editorial table ─── */
+/* ─── Data Rows ─── */
 .row {
-    display: flex; justify-content: space-between; align-items: baseline;
-    padding: .54rem 0;
-    border-bottom: 1px solid rgba(255,255,255,.04);
+    display: flex; justify-content: space-between; align-items: center;
+    padding: .48rem 0; border-bottom: 1px solid #f9fafb;
 }
 .row:last-child { border-bottom: none; }
-.row-label { color: #2a2e3a; font-size: .78rem; font-weight: 400; flex: 1; }
-.row-value { font-weight: 500; color: #8090a4; font-size: .86rem; text-align: right; }
+.row-label { color: #6b7280; font-size: .85rem; font-weight: 400; }
+.row-value { font-weight: 600; color: #111827; font-size: .9rem; }
 
 /* ─── Recommendation Card ─── */
 .rec-card {
-    padding: 2rem 2rem 2rem 1.8rem; border-radius: 0;
-    border: none; border-left: 2px solid;
-    background: rgba(255,255,255,.015);
-    margin-bottom: 2rem;
+    padding: 1.6rem 1.8rem; border-radius: 12px;
+    border: 1px solid #e5e7eb; border-left: 4px solid;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    margin-bottom: 1.5rem;
     word-wrap: break-word; overflow-wrap: break-word; overflow: hidden;
 }
-.rec-hold  { border-left-color: #4ade80 !important; }
-.rec-sell  { border-left-color: #c8a45a !important; }
-.rec-check { border-left-color: #38bdf8 !important; }
+.rec-hold  { border-left-color: #10b981 !important; background: linear-gradient(to right, #f0fdf4 0%, #fff 50%) !important; }
+.rec-sell  { border-left-color: #f59e0b !important; background: linear-gradient(to right, #fffbeb 0%, #fff 50%) !important; }
+.rec-check { border-left-color: #2563eb !important; background: linear-gradient(to right, #eff6ff 0%, #fff 50%) !important; }
 
-/* ─── Tags — left-border list style ─── */
+/* ─── Tags ─── */
 .tag-good {
-    background: transparent; color: #4ade80;
-    padding: .28rem 0 .28rem .75rem; border-radius: 0; margin-bottom: .4rem;
-    font-size: .8rem; display: block;
-    border: none; border-left: 2px solid rgba(74,222,128,.4);
-    font-weight: 400;
+    background: #f0fdf4; color: #166534;
+    padding: .4rem .85rem; border-radius: 8px; margin-bottom: .45rem;
+    font-size: .86rem; display: block; border: 1px solid #bbf7d0; font-weight: 500;
 }
 .tag-risk {
-    background: transparent; color: #f59e0b;
-    padding: .28rem 0 .28rem .75rem; border-radius: 0; margin-bottom: .4rem;
-    font-size: .8rem; display: block;
-    border: none; border-left: 2px solid rgba(245,158,11,.4);
-    font-weight: 400;
+    background: #fffbeb; color: #92400e;
+    padding: .4rem .85rem; border-radius: 8px; margin-bottom: .45rem;
+    font-size: .86rem; display: block; border: 1px solid #fde68a; font-weight: 500;
 }
 
 /* ─── Disclaimer ─── */
 .disclaimer {
-    font-size: .68rem; color: #1e2028;
-    padding: 2.5rem 0; background: transparent;
-    border: none; border-top: 1px solid rgba(255,255,255,.04);
-    border-radius: 0; margin-top: 5rem; line-height: 2;
+    font-size: .76rem; color: #9ca3af;
+    padding: 1.2rem 1.6rem; background: #f9fafb;
+    border: 1px solid #e5e7eb; border-radius: 10px;
+    margin-top: 3rem; line-height: 1.9;
 }
 
 /* ─── Expanders ─── */
 div[data-testid="stExpander"] {
-    border: none !important;
-    border-top: 1px solid rgba(255,255,255,.05) !important;
-    border-radius: 0 !important; margin-bottom: 0 !important;
-    background: transparent !important; overflow: hidden !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 10px !important; margin-bottom: .5rem !important;
+    background: #ffffff !important; overflow: hidden !important;
 }
 
-/* ─── Tabs — underline style ─── */
+/* ─── Tabs ─── */
 .stTabs [data-baseweb="tab-list"] {
-    background: transparent;
-    border-bottom: 1px solid rgba(255,255,255,.06);
-    border-radius: 0; padding: 0 0 0 0; gap: 0;
+    background: #f3f4f6; border-radius: 10px; padding: 4px; gap: 3px;
 }
 .stTabs [data-baseweb="tab"] {
-    border-radius: 0;
-    border-bottom: 2px solid transparent !important;
-    font-weight: 600 !important; font-size: .65rem !important;
-    color: #2e3040 !important; text-transform: uppercase !important;
-    letter-spacing: .12rem !important; padding: .65rem 1.1rem !important;
-    margin-bottom: -1px;
+    border-radius: 7px; font-weight: 600 !important; font-size: .84rem !important;
+    color: #6b7280 !important;
 }
 .stTabs [aria-selected="true"] {
-    background: transparent !important; color: #c8a45a !important;
-    border-bottom-color: #c8a45a !important;
+    background: #ffffff !important; color: #111827 !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,.1) !important;
 }
 
-/* ─── Metrics — editorial stat ─── */
+/* ─── Metrics ─── */
 div[data-testid="stMetric"] {
-    background: transparent !important; border-radius: 0 !important;
-    padding: 1.2rem 0 !important; border: none !important;
-    border-bottom: 1px solid rgba(255,255,255,.05) !important;
-    box-shadow: none !important;
+    background: #ffffff !important; border-radius: 12px !important;
+    padding: 1rem 1.2rem !important; border: 1px solid #e5e7eb !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04) !important;
 }
 div[data-testid="stMetricLabel"] {
-    font-size: .55rem !important; color: #242730 !important;
-    font-weight: 700 !important; text-transform: uppercase !important;
-    letter-spacing: .22rem !important;
+    font-size: .75rem !important; color: #6b7280 !important;
+    font-weight: 600 !important; text-transform: uppercase !important; letter-spacing: .06rem !important;
 }
-div[data-testid="stMetricValue"] {
-    font-size: 1.65rem !important; font-weight: 700 !important;
-    color: #c8c4be !important;
-}
-div[data-testid="stMetricDelta"] { font-size: .73rem !important; font-weight: 500 !important; }
+div[data-testid="stMetricValue"] { font-size: 1.55rem !important; font-weight: 700 !important; color: #111827 !important; }
+div[data-testid="stMetricDelta"] { font-size: .77rem !important; font-weight: 600 !important; }
 
 /* ─── Form ─── */
 div[data-testid="stForm"] {
-    background: transparent !important; border-radius: 0;
-    padding: 1.5rem 0 !important;
-    border: none !important;
-    border-top: 1px solid rgba(255,255,255,.06) !important;
-    box-shadow: none !important;
+    background: #ffffff !important; border-radius: 14px;
+    padding: 1.5rem !important; border: 1px solid #e5e7eb !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04) !important;
 }
-
-/* Editorial underline inputs */
-[data-testid="stTextInput"] > div > div,
-[data-testid="stNumberInput"] > div > div {
-    background: transparent !important;
-    border: none !important;
-    border-bottom: 1px solid rgba(255,255,255,.1) !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-}
-[data-testid="stTextInput"] input,
-[data-testid="stNumberInput"] input {
-    background: transparent !important;
-    color: #a8b0be !important;
-    font-size: .96rem !important; font-weight: 500 !important;
-    padding-left: 0 !important;
-}
-
-/* Submit button — editorial bar */
 div.stFormSubmitButton > button {
-    background: #c8a45a !important;
-    color: #08090f !important; border: none !important;
-    border-radius: 2px !important; font-weight: 800 !important;
-    font-size: .68rem !important; letter-spacing: .22rem !important;
-    text-transform: uppercase !important;
-    box-shadow: none !important; width: 100% !important;
-    padding: 1.1rem 0 !important;
+    background: #2563eb !important;
+    color: #ffffff !important; border: none !important;
+    border-radius: 8px !important; font-weight: 700 !important;
+    font-size: .95rem !important;
+    box-shadow: 0 2px 4px rgba(37,99,235,.2), 0 6px 16px rgba(37,99,235,.12) !important;
+    width: 100% !important;
 }
 
 /* ─── Progress ─── */
-div[data-testid="stProgress"] > div { border-radius: 0 !important; }
-div[data-testid="stProgress"] > div > div {
-    background: rgba(255,255,255,.05) !important; border-radius: 0 !important;
-}
+div[data-testid="stProgress"] > div { border-radius: 100px !important; }
+div[data-testid="stProgress"] > div > div { background: #e5e7eb !important; border-radius: 100px !important; }
 div[data-testid="stProgress"] > div > div > div {
-    background: #c8a45a !important; border-radius: 0 !important;
+    background: linear-gradient(90deg, #2563eb, #60a5fa) !important;
+    border-radius: 100px !important;
 }
 
 /* ─── Misc ─── */
-div.stAlert { border-radius: 2px !important; }
-hr { border-color: rgba(255,255,255,.05) !important; opacity: 1 !important; margin: 2.5rem 0 !important; }
-div[data-testid="stDataFrame"] { border-radius: 0 !important; overflow: hidden !important; }
+div.stAlert { border-radius: 10px !important; }
+hr { border-color: #e5e7eb !important; opacity: 1 !important; margin: 1.5rem 0 !important; }
+div[data-testid="stDataFrame"] { border-radius: 10px !important; overflow: hidden !important; border: 1px solid #e5e7eb !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -536,30 +486,30 @@ def calc_after_tax_cf(fin: dict, depr: dict, tax_bracket: float = 25.0) -> dict:
 # ──────────────────────────────────────────────────────────────────────────────
 
 def gauge_chart(score: int) -> go.Figure:
-    color = "#34d399" if score >= 80 else "#d4a853" if score >= 65 else "#fbbf24" if score >= 50 else "#f87171"
+    color = "#059669" if score >= 80 else "#2563eb" if score >= 65 else "#d97706" if score >= 50 else "#ef4444"
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=score,
         number={"font": {"size": 52, "color": color}, "suffix": "/100"},
-        title={"text": "投資スコア", "font": {"size": 14, "color": "#64748b"}},
+        title={"text": "投資スコア", "font": {"size": 14, "color": "#6b7280"}},
         gauge={
             "axis": {"range": [0, 100], "tickvals": [0, 25, 50, 65, 80, 100],
-                     "tickcolor": "#334155", "tickfont": {"color": "#475569", "size": 10}},
+                     "tickcolor": "#d1d5db", "tickfont": {"color": "#9ca3af", "size": 10}},
             "bar": {"color": color, "thickness": 0.25},
-            "bgcolor": "#111827",
-            "borderwidth": 0,
+            "bgcolor": "#f9fafb",
+            "borderwidth": 1, "bordercolor": "#e5e7eb",
             "steps": [
-                {"range": [0,  50],  "color": "rgba(248,113,113,.1)"},
-                {"range": [50, 65],  "color": "rgba(251,191,36,.1)"},
-                {"range": [65, 80],  "color": "rgba(212,168,83,.12)"},
-                {"range": [80, 100], "color": "rgba(52,211,153,.15)"},
+                {"range": [0,  50],  "color": "#fef2f2"},
+                {"range": [50, 65],  "color": "#fffbeb"},
+                {"range": [65, 80],  "color": "#eff6ff"},
+                {"range": [80, 100], "color": "#f0fdf4"},
             ],
             "threshold": {"line": {"color": color, "width": 3}, "thickness": 0.8, "value": score},
         },
     ))
     fig.update_layout(height=290, margin=dict(l=20, r=20, t=40, b=0),
                       paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                      font={"family": "Inter, sans-serif", "color": "#64748b"})
+                      font={"family": "Inter, sans-serif", "color": "#6b7280"})
     return fig
 
 
@@ -578,22 +528,22 @@ def breakdown_chart(breakdown: dict) -> go.Figure:
         breakdown.get("market_max", 10),
     ]
     pcts   = [v / m * 100 if m else 0 for v, m in zip(vals, maxs)]
-    colors = ["#34d399" if p >= 70 else "#d4a853" if p >= 45 else "#f87171" for p in pcts]
+    colors = ["#059669" if p >= 70 else "#d97706" if p >= 45 else "#ef4444" for p in pcts]
 
     fig = go.Figure()
-    fig.add_trace(go.Bar(x=cats, y=maxs, marker_color="#1e293b", showlegend=False, name="最大"))
+    fig.add_trace(go.Bar(x=cats, y=maxs, marker_color="#f3f4f6", showlegend=False, name="最大"))
     fig.add_trace(go.Bar(
         x=cats, y=vals, marker_color=colors, showlegend=False,
         text=[f"{v}/{m}" for v, m in zip(vals, maxs)],
-        textposition="outside", textfont={"color": "#94a3b8"}, name="取得",
+        textposition="outside", textfont={"color": "#6b7280"}, name="取得",
     ))
     fig.update_layout(
         barmode="overlay", height=275,
         margin=dict(l=10, r=10, t=20, b=10),
         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        yaxis={"showgrid": True, "gridcolor": "#1e293b", "tickfont": {"color": "#475569"}},
-        xaxis={"showgrid": False, "tickfont": {"color": "#64748b"}},
-        font={"size": 11, "family": "Inter, sans-serif", "color": "#64748b"},
+        yaxis={"showgrid": True, "gridcolor": "#f3f4f6", "tickfont": {"color": "#9ca3af"}},
+        xaxis={"showgrid": False, "tickfont": {"color": "#6b7280"}},
+        font={"size": 11, "family": "Inter, sans-serif", "color": "#6b7280"},
     )
     return fig
 
@@ -603,28 +553,28 @@ def ten_year_chart(sim: list) -> go.Figure:
     values   = [d["物件価値"]   for d in sim]
     equities = [d["エクイティ"] for d in sim]
     cum_cfs  = [d["累積CF"]     for d in sim]
-    colors   = ["rgba(52,211,153,.7)" if v >= 0 else "rgba(248,113,113,.7)" for v in cum_cfs]
+    colors   = ["#86efac" if v >= 0 else "#fca5a5" for v in cum_cfs]
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=years, y=values,   name="物件価値",
-                             line=dict(color="#d4a853", width=2.5), mode="lines+markers",
-                             marker=dict(size=7, color="#d4a853", line=dict(color="#0f172a", width=2))))
+                             line=dict(color="#2563eb", width=2.5), mode="lines+markers",
+                             marker=dict(size=7, color="#2563eb", line=dict(color="white", width=2))))
     fig.add_trace(go.Scatter(x=years, y=equities, name="エクイティ",
-                             line=dict(color="#34d399", width=2.5), mode="lines+markers",
-                             marker=dict(size=7, color="#34d399", line=dict(color="#0f172a", width=2))))
+                             line=dict(color="#059669", width=2.5), mode="lines+markers",
+                             marker=dict(size=7, color="#059669", line=dict(color="white", width=2))))
     fig.add_trace(go.Bar(x=years, y=cum_cfs, name="累積CF", marker_color=colors,
                          text=[f"${v:,.0f}" for v in cum_cfs], textposition="outside",
-                         textfont={"color": "#94a3b8"}, yaxis="y2"))
+                         textfont={"color": "#6b7280"}, yaxis="y2"))
     fig.update_layout(
-        title=dict(text="10年間 資産価値・エクイティ・累積CF推移", font={"color": "#94a3b8", "size": 13}),
+        title=dict(text="10年間 資産価値・エクイティ・累積CF推移", font={"color": "#374151", "size": 13}),
         height=410, margin=dict(l=10, r=75, t=55, b=10),
         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        yaxis =dict(title="金額 ($)", showgrid=True, gridcolor="#1e293b",
-                    titlefont={"color": "#475569"}, tickfont={"color": "#475569"}),
+        yaxis =dict(title="金額 ($)", showgrid=True, gridcolor="#f3f4f6",
+                    titlefont={"color": "#6b7280"}, tickfont={"color": "#9ca3af"}),
         yaxis2=dict(title="累積CF ($)", overlaying="y", side="right",
-                    titlefont={"color": "#475569"}, tickfont={"color": "#475569"}),
-        legend=dict(orientation="h", y=-0.18, font={"color": "#64748b"}),
-        xaxis =dict(showgrid=False, tickfont={"color": "#475569"}),
-        font={"family": "Inter, sans-serif", "color": "#64748b"},
+                    titlefont={"color": "#6b7280"}, tickfont={"color": "#9ca3af"}),
+        legend=dict(orientation="h", y=-0.18, font={"color": "#374151"}),
+        xaxis =dict(showgrid=False, tickfont={"color": "#9ca3af"}),
+        font={"family": "Inter, sans-serif", "color": "#374151"},
     )
     return fig
 
@@ -677,7 +627,7 @@ def mortgage_rate_chart(market_data: dict) -> go.Figure | None:
     if rates_data.get("error"):
         return None
     fig    = go.Figure()
-    colors = {"MORTGAGE30US": "#d4a853", "MORTGAGE15US": "#34d399"}
+    colors = {"MORTGAGE30US": "#2563eb", "MORTGAGE15US": "#059669"}
     for series_id, info in rates_data.items():
         if isinstance(info, dict) and "history" in info:
             dates  = [h[0] for h in info["history"]]
@@ -689,14 +639,14 @@ def mortgage_rate_chart(market_data: dict) -> go.Figure | None:
                 mode="lines",
             ))
     fig.update_layout(
-        title=dict(text="住宅ローン金利推移（直近1年）", font={"color": "#94a3b8", "size": 12}),
+        title=dict(text="住宅ローン金利推移（直近1年）", font={"color": "#374151", "size": 12}),
         height=290, margin=dict(l=10, r=10, t=50, b=10),
         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        yaxis=dict(title="金利 (%)", ticksuffix="%", showgrid=True, gridcolor="#1e293b",
-                   titlefont={"color": "#475569"}, tickfont={"color": "#475569"}),
-        xaxis=dict(showgrid=False, tickfont={"color": "#475569"}),
-        legend=dict(orientation="h", y=-0.3, font={"color": "#64748b"}),
-        font=dict(size=10, family="Inter, sans-serif", color="#64748b"),
+        yaxis=dict(title="金利 (%)", ticksuffix="%", showgrid=True, gridcolor="#f3f4f6",
+                   titlefont={"color": "#6b7280"}, tickfont={"color": "#9ca3af"}),
+        xaxis=dict(showgrid=False, tickfont={"color": "#9ca3af"}),
+        legend=dict(orientation="h", y=-0.3, font={"color": "#374151"}),
+        font=dict(size=10, family="Inter, sans-serif", color="#374151"),
     )
     return fig
 
@@ -730,10 +680,10 @@ def show_results(
     c1, c2 = st.columns([1, 1.4])
     with c1:
         st.plotly_chart(gauge_chart(score), use_container_width=True)
-        if   score >= 80: label, color = "優秀 ― 強く推奨",  "#34d399"
-        elif score >= 65: label, color = "良好 ― 推奨",      "#d4a853"
-        elif score >= 50: label, color = "普通 ― 要検討",    "#fbbf24"
-        else:             label, color = "要注意 ― 慎重に",  "#f87171"
+        if   score >= 80: label, color = "優秀 ― 強く推奨",  "#059669"
+        elif score >= 65: label, color = "良好 ― 推奨",      "#2563eb"
+        elif score >= 50: label, color = "普通 ― 要検討",    "#d97706"
+        else:             label, color = "要注意 ― 慎重に",  "#ef4444"
         st.markdown(
             f"<div style='text-align:center;font-size:1.1rem;font-weight:700;"
             f"color:{color};margin-top:-.5rem'>{label}</div>",
@@ -1024,7 +974,7 @@ def show_results(
             "dom": None,
             "ppsf": None,
             "status": "入力値",
-            "color": "#d4a853",
+            "color": "#1d4ed8",
         })
         # Zillow Zestimate
         zest = prop.get("zestimate")
@@ -1035,7 +985,7 @@ def show_results(
                 "dom": None,
                 "ppsf": None,
                 "status": "推定価格",
-                "color": "#60a5fa",
+                "color": "#2563eb",
             })
         # Redfin
         if has_redfin:
@@ -1046,7 +996,7 @@ def show_results(
                 "dom":   redfin_d.get("days_on_market"),
                 "ppsf":  redfin_d.get("price_per_sqft"),
                 "status": redfin_d.get("status", ""),
-                "color": "#f87171",
+                "color": "#dc2626",
             })
         # Realtor.com
         if has_realtor:
@@ -1057,7 +1007,7 @@ def show_results(
                 "dom":   realtor_d.get("days_on_market"),
                 "ppsf":  realtor_d.get("price_per_sqft"),
                 "status": realtor_d.get("status", ""),
-                "color": "#fca5a5",
+                "color": "#b91c1c",
             })
 
         cols = st.columns(len(sources))
@@ -1102,7 +1052,7 @@ def show_results(
             bs  = walk.get("bike_score")
             w_color = "#0284c7" if ws >= 70 else "#f97316" if ws >= 50 else "#dc2626"
             walk_html = f"""
-            <div style="background:rgba(14,165,233,.07);border:1px solid rgba(14,165,233,.2);border-radius:12px;
+            <div style="background:#eff6ff;border-left:4px solid #3b82f6;border-radius:10px;
                         padding:1rem 1.4rem;margin-bottom:1rem;display:flex;gap:2rem;align-items:center;">
                 <div><span style="font-size:1.5rem;font-weight:700;color:{w_color}">{ws}</span>
                      <span style="font-size:.82rem;color:#475569;margin-left:.3rem">Walk Score<br>{walk.get("walk_desc","")}</span></div>
@@ -1122,8 +1072,9 @@ def show_results(
             fcolor = flood.get("color", "#f57f17")
             ficon  = "🚨" if flood.get("insurance_required") else "✅"
             fbg    = "#ffebee" if flood.get("insurance_required") else "#e8f5e9"
+            fbg = "#fef2f2" if flood.get("insurance_required") else "#f0fdf4"
             st.markdown(f"""
-            <div style="background:rgba(0,0,0,.2);border:1px solid {fcolor}44;border-left:4px solid {fcolor};border-radius:12px;
+            <div style="background:{fbg};border-left:4px solid {fcolor};border-radius:10px;
                         padding:1rem 1.4rem;margin-bottom:1rem;">
                 <span style="font-weight:700;color:{fcolor};font-size:.95rem">
                     {ficon} 洪水リスク: ゾーン {flood.get('zone','X')} ― {flood.get('description','')}
@@ -1201,9 +1152,9 @@ def show_results(
             car_dep  = transit_det.get("car_dependent", True)
             if car_dep:
                 st.markdown("""
-                <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:12px;
+                <div style="background:#fffbeb;border-left:4px solid #f59e0b;border-radius:10px;
                             padding:1rem 1.4rem;margin-top:.8rem;">
-                    <span style="font-weight:700;color:#fbbf24">🚗 自動車依存エリア</span>
+                    <span style="font-weight:700;color:#d97706">🚗 自動車依存エリア</span>
                     <span style="font-size:.88rem;color:#475569;margin-left:.6rem">
                         半径3マイル以内に公共交通機関の停留所なし（バス・鉄道・地下鉄）。
                         車なしでの生活は困難です。入居者層は自動車保有世帯が前提。
@@ -1232,11 +1183,11 @@ def show_results(
             is_fbi          = "FBI" in source
 
             if safety_score >= 70:
-                c_color, c_bg, c_icon = "#34d399", "rgba(52,211,153,.08)", "✅"
+                c_color, c_bg, c_icon = "#059669", "#ecfdf5", "✅"
             elif safety_score >= 40:
-                c_color, c_bg, c_icon = "#fbbf24", "rgba(251,191,36,.08)", "⚠️"
+                c_color, c_bg, c_icon = "#d97706", "#fffbeb", "⚠️"
             else:
-                c_color, c_bg, c_icon = "#f87171", "rgba(248,113,113,.08)", "🚨"
+                c_color, c_bg, c_icon = "#dc2626", "#fef2f2", "🚨"
 
             crimes_str = (" / ".join(f"{c['type']}({c['count']}件)" for c in top_crimes[:4])
                           if top_crimes else "データなし")
@@ -1256,7 +1207,7 @@ def show_results(
                 src_str    = f"総件数: <strong>{total_incidents}件</strong>（出典: Chicago Data Portal）"
 
             st.markdown(f"""
-            <div style="background:{c_bg};border:1px solid {c_color}44;border-left:4px solid {c_color};border-radius:12px;
+            <div style="background:{c_bg};border-left:4px solid {c_color};border-radius:10px;
                         padding:1rem 1.4rem;margin-top:1rem;">
                 <div style="font-weight:700;color:{c_color};font-size:1rem">
                     {c_icon} 安全スコア: {safety_score}/100 ― {safety_label}
@@ -1290,7 +1241,7 @@ def show_results(
                 est_color = "#059669" if est_safety >= 70 else "#f97316"
                 county = pop_growth.get("county_name", "") if pop_growth and not pop_growth.get("error") else ""
                 st.markdown(f"""
-                <div style="background:rgba(124,58,237,.09);border:1px solid rgba(124,58,237,.25);border-radius:12px;
+                <div style="background:#f5f3ff;border-left:4px solid #7c3aed;border-radius:10px;
                             padding:1rem 1.4rem;margin-top:1rem;">
                     <div style="font-weight:700;color:#7c3aed;font-size:1rem">
                         📊 安全性 推定スコア: {int(est_safety)}/100 ― {est_label}
@@ -1351,7 +1302,7 @@ def show_results(
             bar_color = "#064e3b" if g2 >= 5 else "#10b981" if g2 >= 3 else "#f59e0b" if g2 >= 0 else "#ef4444"
             bar_width = min(abs(g2) * 8, 100)
             st.markdown(f"""
-            <div style="background:#111827;border:1px solid rgba(212,168,83,.12);border-radius:12px;padding:.9rem 1.2rem;margin-top:.5rem;">
+            <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:.9rem 1.2rem;margin-top:.5rem;">
                 <div style="font-size:.85rem;color:#475569;margin-bottom:.4rem">
                     📈 <strong>{pop_growth.get('county_name','')}</strong> 人口増加トレンド
                     <span style="font-size:.75rem;color:#94a3b8;margin-left:.5rem">出典: US Census Bureau Population Estimates</span>
@@ -1527,7 +1478,7 @@ def show_results(
 
                 link_html = (
                     f'<a href="{url}" target="_blank" rel="noopener" '
-                    f'style="color:#d4a853;text-decoration:none;font-weight:600;'
+                    f'style="color:#2563eb;text-decoration:none;font-weight:600;'
                     f'font-size:.88rem;line-height:1.35">{ttl}</a>'
                     if url else
                     f'<span style="font-weight:600;font-size:.88rem">{ttl}</span>'
@@ -1538,7 +1489,7 @@ def show_results(
                 meta_str = " · ".join(meta)
 
                 col.markdown(
-                    f"""<div style="background:#1a2035;border:1px solid rgba(212,168,83,.1);
+                    f"""<div style="background:#ffffff;border:1px solid #e5e7eb;
                         border-left:4px solid #2563eb;border-radius:10px;
                         padding:.9rem 1.1rem;margin-bottom:.7rem;min-height:110px">
                         {link_html}
@@ -1605,7 +1556,7 @@ def show_results(
                     border_col = "#0284c7" if lang == "ja" else "#c62828" if "bloomberg" in src.lower() or "wsj" in src.lower() else "#059669"
                     link_html = (
                         f'<a href="{url}" target="_blank" rel="noopener" '
-                        f'style="color:#d4a853;text-decoration:none;font-weight:600;'
+                        f'style="color:#2563eb;text-decoration:none;font-weight:600;'
                         f'font-size:.86rem;line-height:1.35">{ttl}</a>'
                         if url else
                         f'<span style="font-weight:600;font-size:.86rem">{ttl}</span>'
@@ -1615,7 +1566,7 @@ def show_results(
                     if src:  meta.append(src)
 
                     col.markdown(
-                        f"""<div style="background:#1a2035;border:1px solid rgba(212,168,83,.1);
+                        f"""<div style="background:#ffffff;border:1px solid #e5e7eb;
                             border-left:4px solid {border_col};border-radius:10px;
                             padding:.85rem 1rem;margin-bottom:.65rem;min-height:115px">
                             {link_html}
@@ -1703,13 +1654,13 @@ def show_results(
 def main():
     st.markdown("""
     <div class="main-header">
-        <div class="badge">USA &nbsp;·&nbsp; Real Estate Analytics Platform</div>
+        <div class="badge">🏠 USA Real Estate Analytics Platform</div>
         <h1>AI不動産投資コンサルタント</h1>
-        <p class="sub">Japan Investor &nbsp;·&nbsp; Intelligent Property Analysis</p>
+        <p class="sub">日本人投資家向け 米国不動産 投資分析プラットフォーム</p>
         <p class="powered">
-            Claude AI &ensp;·&ensp; Zillow &ensp;·&ensp; Google Maps &ensp;·&ensp;
-            FEMA &ensp;·&ensp; Census &ensp;·&ensp; FRED &ensp;·&ensp;
-            CNBC &ensp;·&ensp; Bloomberg &ensp;·&ensp; WSJ &ensp;·&ensp; Redfin
+            Powered by Claude AI &nbsp;·&nbsp; Zillow &nbsp;·&nbsp; Google Maps &nbsp;·&nbsp;
+            FEMA &nbsp;·&nbsp; Census &nbsp;·&nbsp; FRED &nbsp;·&nbsp;
+            CNBC &nbsp;·&nbsp; Bloomberg &nbsp;·&nbsp; WSJ &nbsp;·&nbsp; Redfin
         </p>
     </div>
     """, unsafe_allow_html=True)
